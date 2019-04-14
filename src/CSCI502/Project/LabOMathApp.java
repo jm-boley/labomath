@@ -5,58 +5,42 @@
  */
 package CSCI502.Project;
 
+import java.awt.Container;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.ListSelectionModel;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.JPanel;
 
 /**
  *
  * @author boley
  */
-public class CmdlineInterpreterApp
+public class LabOMathApp
         extends JFrame
         implements ActionListener
 {
     public static void main(String[] args)
     {
         EventQueue.invokeLater(() -> {
-            CmdlineInterpreterApp cmdlineApp = new CmdlineInterpreterApp();
+            LabOMathApp cmdlineApp = new LabOMathApp();
             cmdlineApp
                     .createAndShowGUI()
                     .setVisible(true);
         });
     }
     
-    CmdlineInterpreterApp()
+    LabOMathApp()
     {
         super ("Labomath v0.1");
     }
 
-    CmdlineInterpreterApp createAndShowGUI()
+    LabOMathApp createAndShowGUI()
     {
+        JPanel cmdlinePanel = new CmdLinePanel();
+        Container me = this.getContentPane();
+        me.add(cmdlinePanel);
+        
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.pack();
         return this;
