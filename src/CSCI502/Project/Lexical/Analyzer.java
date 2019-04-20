@@ -283,9 +283,4 @@ public class Analyzer
 
         return rtoken;
     }
-    
-//    private int flipBit (byte Byte, int pos)
-//    {
-//        return 0;
-//    }
 }
