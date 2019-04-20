@@ -12,6 +12,8 @@ import java.awt.event.ActionListener;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import CSCI502.Project.Lexical.Analyzer;
+
 /**
  *
  * @author boley
@@ -30,14 +32,17 @@ public class LabOMathApp
         });
     }
     
+    private Interpreter core;
+    
     LabOMathApp()
     {
         super ("Labomath v0.1");
+        core = new Interpreter();
     }
 
     LabOMathApp createAndShowGUI()
     {
-        JPanel cmdlinePanel = new CmdLinePanel();
+        JPanel cmdlinePanel = new CmdLinePanel(this.core);
         Container me = this.getContentPane();
         me.add(cmdlinePanel);
         

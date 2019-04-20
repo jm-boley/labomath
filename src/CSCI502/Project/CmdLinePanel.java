@@ -11,6 +11,9 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -31,9 +34,13 @@ class CmdLinePanel
     private JTextArea txtConsoleOut;
     private JTextField tfConsoleIn;
     private Label lblPrompt;
+    
+    private Interpreter interpreter;
 
-    public CmdLinePanel()
+    public CmdLinePanel(Interpreter core)
     {
+        super();
+        this.interpreter = core;
         initComponents();
     }
     
@@ -101,7 +108,19 @@ class CmdLinePanel
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
             String cmd = tfConsoleIn.getText();
             txtConsoleOut.append("> " + cmd + "\n");
-            tfConsoleIn.setText("");
+            String response = null;
+            try {
+                response = interpreter.run(tfConsoleIn);
+            }
+            catch (IOException ex) {
+                Logger.getLogger(CmdLinePanel.class.getName())
+                        .log(Level.SEVERE, null, ex);
+                response = ex.getMessage();
+            }
+            finally {
+                txtConsoleOut.append(response + "\n");
+                tfConsoleIn.setText("");
+            }
         }
     }
 
