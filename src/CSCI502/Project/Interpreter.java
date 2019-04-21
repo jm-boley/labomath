@@ -35,7 +35,7 @@ public class Interpreter
         tokenStream.forEach((token) -> {
             tokenStreamStr
                     .append(token.toString())
-                    .append("    ");
+                    .append("\n");
         });
         
         return tokenStreamStr.toString();
