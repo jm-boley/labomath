@@ -1,0 +1,153 @@
+package CSCI502.Project.ExecLib;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
+/**
+ * Encapsulates variable storage array
+ * @author Joshua Boley
+ */
+public class VariableStorage
+{
+    private static VariableStorage storage = null;
+    
+    /**
+     * Initializes variable storage. Must be called before variable storage can
+     * be used.
+     */
+    public static void initialize()
+    {
+        storage = new VariableStorage();
+    }
+    
+    /**
+     * Allocates storage for the given data type.
+     * @param type  Type of the data to be stored
+     * @return      Object's relative storage location
+     */
+    public static int allocate(DataType type)
+    {
+        return storage.allocateStorage(type);
+    }
+    
+    /**
+     * Assigns the provided data object of the indicated type to the relative
+     * position indicated by the offset.
+     * @param dataObj   Data object to store
+     * @param type      Type of the data object
+     * @param offset    Relative storage location
+     */
+    public static void assign(Object dataObj, DataType type, int offset)
+    {
+        storage.store(dataObj, type, offset);
+    }
+
+    private final Map<String, ByteStorCodec> m_codecMap;
+    private int m_nextAddr;
+    private final List<Byte> m_varstore;
+    
+    private VariableStorage()
+    {
+        m_codecMap = new HashMap<>();
+        m_nextAddr = 0;
+        m_varstore = new ArrayList<>();
+        
+        initCodecMap();
+    }
+
+    private void initCodecMap()
+    {
+        ByteStorCodec codec;
+        
+        // Create 32-bit integer codec
+        codec = new ByteStorCodec(
+            DataType.Int4,
+            (Object dataObj, ByteBuffer stream) -> {
+                        stream.putInt((int) dataObj);
+                        byte[] byteSequence = new byte[DataType.Int4.size()];
+                        stream.get(byteSequence);
+                        return byteSequence;
+            },
+            (ByteBuffer stream) -> stream.getInt()
+        );
+    }
+        
+    private int allocateStorage(DataType type)
+    {
+        for (int i = 0; i < type.size(); ++i)
+            m_varstore.add((byte) 0x0);
+        int offset = m_nextAddr;
+        m_nextAddr += type.size();
+        return offset;
+    }
+    
+    private void store (Object dataObj, DataType type, int offset)
+    {
+        ByteStorCodec codec = m_codecMap.get(type.toString());
+        codec.encode(dataObj, offset, m_varstore);
+    }
+}
+
+class ByteStorCodec
+{
+    private final DataType m_dataType;
+    private final ByteBuffer m_buff;
+    private BiFunction<Object, ByteBuffer, byte[]> m_encoder;
+    private Function<ByteBuffer, Object> m_decoder;
+
+    ByteStorCodec(
+        DataType type,
+        BiFunction<Object, ByteBuffer, byte[]> encoderFunc,
+        Function<ByteBuffer, Object> decoderFunc
+        )
+    {
+        m_dataType = type;
+        m_buff = ByteBuffer.allocate(type.size());
+        m_encoder = null;
+        m_decoder = null;
+    }
+    
+//    void setEncoder(BiFunction<Object, ByteBuffer, byte[]> encoderFunc)
+//    {
+//        m_encoder = encoderFunc;
+//    }
+//    
+//    void setDecoder(Function<ByteBuffer, Object> decoderFunc)
+//    {
+//        m_decoder = decoderFunc;
+//    }
+
+    void encode(Object dataObj, int offset, List<Byte> variableStorage)
+    {
+        // Encode data object as byte sequence
+        m_buff.clear();
+        byte[] byteSequence = m_encoder.apply(dataObj, m_buff);
+        
+        // Place byte sequence in storage
+        for (int i = 0, j = offset; i < byteSequence.length; ++i, ++j)
+            variableStorage.set(i, byteSequence[j]);
+    }
+    
+    Object decode(List<Byte> variableStorage, int offset)
+    {
+        // Retrieve byte sequence from storage
+        byte[] byteSequence = new byte[m_dataType.size()];
+        for (int i = 0, j = offset; i < m_dataType.size(); ++i, ++j)
+            byteSequence[i] = variableStorage.get(j);
+        
+        // Buffer and decode
+        m_buff.clear();
+        m_buff.put(byteSequence);
+        return m_decoder.apply(m_buff);
+    }
+    
+    DataType getSupportedType()
+    {
+        return m_dataType;
+    }
+}

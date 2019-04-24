@@ -5,6 +5,7 @@
  */
 package CSCI502.Project;
 
+import CSCI502.Project.Parsing.Interpreter;
 import java.awt.Color;
 import java.awt.Label;
 import java.awt.event.FocusEvent;

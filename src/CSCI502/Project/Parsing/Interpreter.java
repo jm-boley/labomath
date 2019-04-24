@@ -1,4 +1,4 @@
-package CSCI502.Project;
+package CSCI502.Project.Parsing;
 
 import CSCI502.Project.Lexical.Analyzer;
 import CSCI502.Project.Lexical.Token;

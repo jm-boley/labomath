@@ -12,7 +12,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import CSCI502.Project.Lexical.Analyzer;
+import CSCI502.Project.Parsing.Interpreter;
 
 /**
  *
@@ -36,7 +36,7 @@ public class LabOMathApp
     
     LabOMathApp()
     {
-        super ("Labomath v0.1");
+        super ("LabOMath v0.1");
         core = new Interpreter();
     }
 
