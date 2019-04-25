@@ -46,6 +46,11 @@ public class VariableStorage
     {
         storage.store(dataObj, type, offset);
     }
+    
+    public static Object retrieve(DataType type, int offset)
+    {
+        return storage.fetch(type, offset);
+    }
 
     private final Map<String, ByteStorCodec> m_codecMap;
     private int m_nextAddr;
@@ -70,11 +75,13 @@ public class VariableStorage
             (Object dataObj, ByteBuffer stream) -> {
                         stream.putInt((int) dataObj);
                         byte[] byteSequence = new byte[DataType.Int4.size()];
+                        stream.rewind();
                         stream.get(byteSequence);
                         return byteSequence;
             },
             (ByteBuffer stream) -> stream.getInt()
         );
+        m_codecMap.put(DataType.Int4.toString(), codec);
     }
         
     private int allocateStorage(DataType type)
@@ -91,14 +98,20 @@ public class VariableStorage
         ByteStorCodec codec = m_codecMap.get(type.toString());
         codec.encode(dataObj, offset, m_varstore);
     }
+    
+    private Object fetch (DataType type, int offset)
+    {
+        ByteStorCodec codec = m_codecMap.get(type.toString());
+        return codec.decode(m_varstore, offset);
+    }
 }
 
 class ByteStorCodec
 {
     private final DataType m_dataType;
     private final ByteBuffer m_buff;
-    private BiFunction<Object, ByteBuffer, byte[]> m_encoder;
-    private Function<ByteBuffer, Object> m_decoder;
+    private final BiFunction<Object, ByteBuffer, byte[]> m_encoder;
+    private final Function<ByteBuffer, Object> m_decoder;
 
     ByteStorCodec(
         DataType type,
@@ -108,20 +121,10 @@ class ByteStorCodec
     {
         m_dataType = type;
         m_buff = ByteBuffer.allocate(type.size());
-        m_encoder = null;
-        m_decoder = null;
+        m_encoder = encoderFunc;
+        m_decoder = decoderFunc;
     }
     
-//    void setEncoder(BiFunction<Object, ByteBuffer, byte[]> encoderFunc)
-//    {
-//        m_encoder = encoderFunc;
-//    }
-//    
-//    void setDecoder(Function<ByteBuffer, Object> decoderFunc)
-//    {
-//        m_decoder = decoderFunc;
-//    }
-
     void encode(Object dataObj, int offset, List<Byte> variableStorage)
     {
         // Encode data object as byte sequence
@@ -130,7 +133,7 @@ class ByteStorCodec
         
         // Place byte sequence in storage
         for (int i = 0, j = offset; i < byteSequence.length; ++i, ++j)
-            variableStorage.set(i, byteSequence[j]);
+            variableStorage.set(j, byteSequence[i]);
     }
     
     Object decode(List<Byte> variableStorage, int offset)
@@ -143,6 +146,7 @@ class ByteStorCodec
         // Buffer and decode
         m_buff.clear();
         m_buff.put(byteSequence);
+        m_buff.rewind();
         return m_decoder.apply(m_buff);
     }
     

@@ -32,12 +32,10 @@ public class SymbolTable
     }
     
     private static int nextId;
-    private static int nextOffset;
     private static final SymbolTable symbolTable;
     
     static {
         nextId = 0;
-        nextOffset = 0;
         symbolTable = new SymbolTable();
     }
     
@@ -46,12 +44,14 @@ public class SymbolTable
         return symbolTable.createSymbolEntry(name, type);
     }
     
-    public static int dereference(int symbolId)
+    public static SymbolParams getSymbolParams(int symbolId) throws IllegalArgumentException
     {
-        Entry retrieved;
-        if ((retrieved = symbolTable.getSymbolEntry(symbolId)) == null)
-            return retrieved.getOffset();
-        return 0;
+        Entry symbolEntry;
+        if ((symbolEntry = symbolTable.getSymbolEntry(symbolId)) == null)
+            throw new IllegalArgumentException();
+        return new SymbolParams(
+            symbolEntry.getType(), symbolEntry.getOffset()
+        );
     }
     
     private final Map<Integer, Entry> m_catalog;
@@ -62,8 +62,8 @@ public class SymbolTable
     
     private int createSymbolEntry(String name, DataType type)
     {
-        m_catalog.put(nextId, new Entry(name, type, nextOffset));
-        nextOffset += type.size();
+        int offset = VariableStorage.allocate(type);
+        m_catalog.put(nextId, new Entry(name, type, offset));
         return nextId++;
     }
     
