@@ -31,44 +31,52 @@ public class SymbolTable
         int      getOffset() { return m_byteOffset; }
     }
     
-    private static int nextId;
-    private static final SymbolTable symbolTable;
-    
+    private static final SymbolTable symbolTable;       // Symbol table
     static {
-        nextId = 0;
         symbolTable = new SymbolTable();
     }
-    
-    public static int registerSymbol(String name, DataType type)
+
+    /**
+     * Registers a new variable and allocates new storage.
+     * @param name  Symbol's name
+     * @param type  Symbol's data type
+     */
+    public static void registerVariable(String name, DataType type)
     {
-        return symbolTable.createSymbolEntry(name, type);
+        symbolTable.createSymbolEntry(name, type);
     }
     
-    public static SymbolParams getSymbolParams(int symbolId) throws IllegalArgumentException
+    /**
+     * Returns the parameters (data type, offset into the variable store) associated
+     * with the identified variable.
+     * @param name  Variable's identifier
+     * @return Variable's symbol parameters
+     * @throws IllegalArgumentException
+     */
+    public static SymbolParams getVariableParams(String name) throws IllegalArgumentException
     {
         Entry symbolEntry;
-        if ((symbolEntry = symbolTable.getSymbolEntry(symbolId)) == null)
+        if ((symbolEntry = symbolTable.getSymbolEntry(name)) == null)
             throw new IllegalArgumentException();
         return new SymbolParams(
             symbolEntry.getType(), symbolEntry.getOffset()
         );
     }
     
-    private final Map<Integer, Entry> m_catalog;
+    private final Map<String, Entry> m_catalog;
     public SymbolTable()
     {
         m_catalog = new HashMap<>();
     }
     
-    private int createSymbolEntry(String name, DataType type)
+    private void createSymbolEntry(String name, DataType type)
     {
         int offset = VariableStorage.allocate(type);
-        m_catalog.put(nextId, new Entry(name, type, offset));
-        return nextId++;
+        m_catalog.put(name, new Entry(name, type, offset));
     }
     
-    private Entry getSymbolEntry(int symbolId)
+    private Entry getSymbolEntry(String name)
     {
-        return m_catalog.get(symbolId);
+        return m_catalog.get(name);
     }
 }
