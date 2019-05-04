@@ -21,12 +21,13 @@ enum TypeCode
 public enum DataType
 {
     // NOTE: Sizes required to convert to byte strings in variable storage segment
-    Empty(0, ""/*, TypeCode.EMPTY*/),       // Empty data type
+    Empty(0, "void"/*, TypeCode.EMPTY*/),       // Empty data type
     Char(1, "char"/*, TypeCode.CHAR*/),     // Character data type
     Bool(2, "bool"/*, TypeCode.BOOL*/),     // 2-byte Boolean data type
     Int4(4, "int4"/*, TypeCode.INT4*/),     // 4-byte integer data type
     Imm_Int4(4, "imm_int4"),                // 4-byte integer immediate (constant literal)
-    Imm_Str(-1, "imm_string");              // String immediate (constant literal) of indeterminate size
+    Imm_Str(-1, "imm_string"),              // String immediate (constant literal) of indeterminate size
+    Register(8, "reg");
 
     public static DataType getType (String tname)
     {

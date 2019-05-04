@@ -1,11 +1,10 @@
 package CSCI502.Project.Parsing;
 
 import CSCI502.Project.ExecLib.DataType;
-import CSCI502.Project.ExecLib.InstructionBuilder;
 import CSCI502.Project.Lexical.Token;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 /**
  * Instruction (code) generation tree node.
@@ -140,7 +139,7 @@ public class CNode
     
     private static int nextId = 0;                  // Next available node ID
     
-    private final BiConsumer<CNode, InstructionBuilder>
+    private final BiFunction<CNode, InstructionBuilder, Integer>
                   m_injected;                       // Injected code
     private final DataType m_valType;               // Node value type (implied by instruction operands)
     private final Token m_token;                    // Encapsulated token
@@ -148,7 +147,7 @@ public class CNode
     private       String m_capture;                 // Custom capture label
     private       CNode m_parent, m_rsib, m_child;  // Parent, sibling, child node references
 
-    CNode(Token token, BiConsumer<CNode, InstructionBuilder> executedCode)
+    CNode(Token token, BiFunction<CNode, InstructionBuilder, Integer> executedCode)
     {
         m_injected = executedCode;
         m_valType = DataType.Empty;
@@ -160,7 +159,7 @@ public class CNode
         m_child = null;
     }
     
-    CNode(Token token, BiConsumer<CNode, InstructionBuilder> executedCode, DataType type)
+    CNode(Token token, BiFunction<CNode, InstructionBuilder, Integer> executedCode, DataType type)
     {
         m_injected = executedCode;
         m_valType = type;
@@ -185,6 +184,6 @@ public class CNode
     public String   getCapture()    { return m_capture; }
     public int      getId()         { return m_id; }
 
-    public void execCodeGen (InstructionBuilder builder)
-            { m_injected.accept(this, builder); }
+    public int execCodeGen (InstructionBuilder builder)
+            { return m_injected.apply(this, builder); }
 }

@@ -5,7 +5,7 @@
  */
 package CSCI502.Project;
 
-import CSCI502.Project.Parsing.Interpreter;
+import CSCI502.Project.Runtime.Interpreter;
 import java.awt.Color;
 import java.awt.Label;
 import java.awt.event.FocusEvent;
@@ -36,7 +36,7 @@ class CmdLinePanel
     private JTextField tfConsoleIn;
     private Label lblPrompt;
     
-    private Interpreter interpreter;
+    private final Interpreter interpreter;
 
     public CmdLinePanel(Interpreter core)
     {
@@ -97,6 +97,9 @@ class CmdLinePanel
         );
 
         lblPrompt.getAccessibleContext().setAccessibleName("lblPrompt");
+        
+        // Initialize interpreter
+        this.interpreter.initConsoleOut(txtConsoleOut);
     }
     
     @Override
@@ -109,17 +112,14 @@ class CmdLinePanel
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
             String cmd = tfConsoleIn.getText();
             txtConsoleOut.append("> " + cmd + "\n");
-            String response = null;
             try {
-                response = interpreter.run(tfConsoleIn);
+                interpreter.run(tfConsoleIn);
             }
             catch (IOException ex) {
                 Logger.getLogger(CmdLinePanel.class.getName())
                         .log(Level.SEVERE, null, ex);
-                response = ex.getMessage();
             }
             finally {
-                txtConsoleOut.append(response + "\n");
                 tfConsoleIn.setText("");
             }
         }

@@ -17,8 +17,8 @@ import javax.swing.JTextField;
  */
 public class Analyzer
 {
-    private PushbackInputStream m_ifs;   // Input stream (may be file or string from JTextField
-    StateMachine m_stateMachine;    // State machine
+    private PushbackInputStream m_ifs;          // Input stream (may be file or string from JTextField
+    private final StateMachine m_stateMachine;  // State machine
     int startLineNo, startColNo,    // Parse starting line and column
         currLineNo, currColNo,      // Current line and column
         seqno;                      // Next token sequence number
@@ -36,6 +36,7 @@ public class Analyzer
     /**
      * Takes a file path and attempts to open it for parsing.
      * @param fpath Path to script file
+     * @return Token stream
      * @throws java.io.IOException 
      */
     public void init (String fpath) throws IOException
@@ -88,7 +89,7 @@ public class Analyzer
      * @return Token
      * @throws IOException 
      */
-    public Token getNextToken () throws IOException
+    Token getNextToken () throws IOException
     {
         if (m_ifs == null)
             throw new RuntimeException("Analyzer::getNextToken() called before init()");

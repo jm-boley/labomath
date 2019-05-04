@@ -12,7 +12,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import CSCI502.Project.Parsing.Interpreter;
+import CSCI502.Project.Runtime.Interpreter;
 
 /**
  *
