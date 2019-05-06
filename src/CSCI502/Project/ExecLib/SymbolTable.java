@@ -63,6 +63,11 @@ public class SymbolTable
         );
     }
     
+    public static boolean isRegistered(String name)
+    {
+        return symbolTable.hasSymbolDefinition(name);
+    }
+    
     private final Map<String, Entry> m_catalog;
     public SymbolTable()
     {
@@ -78,5 +83,10 @@ public class SymbolTable
     private Entry getSymbolEntry(String name)
     {
         return m_catalog.get(name);
+    }
+    
+    private boolean hasSymbolDefinition(String name)
+    {
+        return m_catalog.containsKey(name);
     }
 }

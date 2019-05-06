@@ -17,24 +17,41 @@ public class Operand
     
     private final DataType m_dataType;      // Enclosed data type
     private final Object m_refTargetVal;    // Symbol table target or literal value
+    private final boolean m_isRef;          // Is a reference value
     
     public Operand(int immInteger)
     {
         m_dataType = DataType.Imm_Int4;
         m_refTargetVal = immInteger;
+        m_isRef = false;
+    }
+    
+    public Operand(boolean immBoolean)
+    {
+        m_dataType = DataType.Imm_Bool;
+        m_refTargetVal = immBoolean;
+        m_isRef = false;
+    }
+    
+    public Operand(String strLiteral)
+    {
+        m_dataType = DataType.Imm_Str;
+        m_refTargetVal = strLiteral;
+        m_isRef = false;
     }
     
     public Operand(Register reg)
     {
         m_dataType = DataType.Register;
         m_refTargetVal = reg;
+        m_isRef = false;
     }
     
-    public Operand(DataType type, String symbolNameOrStrLiteral)
+    public Operand(DataType type, int symbolOffset)
     {
         m_dataType = type;
-        // Get symbol table reference
-        m_refTargetVal = 0;
+        m_refTargetVal = symbolOffset;
+        m_isRef = true;
     }
     
     /**
@@ -53,8 +70,15 @@ public class Operand
      */
     public Object getEnclosed()
     {
-        if (m_dataType == DataType.Imm_Int4 || m_dataType == DataType.Imm_Str)
-            return m_refTargetVal;
-        return null;
+        return m_refTargetVal;
+    }
+    
+    /**
+     * Returns whether or not operand is a reference type
+     * @return True or false
+     */
+    public boolean isReference()
+    {
+        return m_isRef;
     }
 }

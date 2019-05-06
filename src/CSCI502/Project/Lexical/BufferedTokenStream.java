@@ -89,12 +89,13 @@ public class BufferedTokenStream
     
     public boolean rewind(Token rewindMark)
     {
-        int currIdx = m_index;
+        int currIdx = (m_index < m_tokenBuffer.size()) ? m_index : --m_index;
         while (currIdx >= 0 && m_tokenBuffer.get(currIdx) != rewindMark)
             --currIdx;
         if (m_tokenBuffer.get(currIdx) != rewindMark)
             return false;
         m_index = currIdx;
+        m_eos = false;
         return true;
     }
     

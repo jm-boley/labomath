@@ -15,13 +15,12 @@ import java.util.List;
 public class InstructionBuilder
 {
 	private final List<List<Instruction>> m_codeSegments;
-	private int m_writeIdx,         // Current instruction index
-                    m_activeSegment;    // Active instruction segment
+	private int m_activeSegment;    // Active instruction segment
 
 	public InstructionBuilder()
         {
             m_codeSegments = new ArrayList<>();
-            m_writeIdx = 0;
+            m_codeSegments.add(new ArrayList<>());
             m_activeSegment = 0;
         }
 
@@ -73,6 +72,15 @@ public class InstructionBuilder
 	public int createStrLiteral(String value)
         {
             return 0;
+        }
+        
+        public List<Instruction> commit()
+        {
+            List<Instruction> program = new ArrayList<>();
+            m_codeSegments.forEach((codeSegment) -> {
+                program.addAll(codeSegment);
+            });
+            return program;
         }
 
         public InstructionBuilder MOV(Operand dst, Operand src)
@@ -136,9 +144,29 @@ public class InstructionBuilder
                 .add(instr);
             return this;
         }
-
-	public InstructionBuilder NEG(Register op)
+        
+        public InstructionBuilder EXP(Register dst, Register src)
         {
+            List<Operand> operands = new ArrayList<>();
+            operands.add(new Operand(dst));
+            operands.add(new Operand(src));
+            m_codeSegments
+                .get(m_activeSegment)
+                .add(
+                    new Instruction(Instruction.Opcode.EXP, operands)
+                );
+            return this;
+        }
+
+	public InstructionBuilder NEG(Register dst)
+        {
+            List<Operand> operands = new ArrayList<>();
+            operands.add(new Operand(dst));
+            m_codeSegments
+                .get(m_activeSegment)
+                .add(
+                    new Instruction(Instruction.Opcode.NEGATION, operands)
+                );
             return this;
         }
 
@@ -168,6 +196,12 @@ public class InstructionBuilder
 
 	public InstructionBuilder PRINT(Operand src)
         {
+            List<Operand> operands = new ArrayList<>();
+            operands.add(src);
+            Instruction instr = new Instruction(Instruction.Opcode.PRINT, operands);
+            m_codeSegments
+                .get(m_activeSegment)
+                .add(instr);
             return this;
         }
         

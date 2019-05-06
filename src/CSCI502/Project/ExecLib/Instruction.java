@@ -15,6 +15,8 @@ public class Instruction
         SUBTRACT,
         MULTIPLY,
         DIVIDE,
+        EXP,
+        NEGATION,
         PUSH,
         POP,
         PRINT;

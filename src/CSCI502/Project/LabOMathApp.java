@@ -13,6 +13,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import CSCI502.Project.Runtime.Interpreter;
+import java.awt.BorderLayout;
 
 /**
  *
@@ -32,19 +33,23 @@ public class LabOMathApp
         });
     }
     
-    private Interpreter core;
+    private Interpreter m_runtime;
     
     LabOMathApp()
     {
         super ("LabOMath v0.1");
-        core = new Interpreter();
+        m_runtime = new Interpreter();
     }
 
     LabOMathApp createAndShowGUI()
     {
-        JPanel cmdlinePanel = new CmdLinePanel(this.core);
+        JPanel cmdlinePanel = new CmdLinePanel(m_runtime);
+        TextEditorForm editor = new TextEditorForm(m_runtime);
+        editor.setVisible(true);
         Container me = this.getContentPane();
-        me.add(cmdlinePanel);
+        me.setLayout(new BorderLayout());
+        me.add(editor, BorderLayout.NORTH);
+        me.add(cmdlinePanel, BorderLayout.CENTER);
         
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.pack();

@@ -1,18 +1,24 @@
 package CSCI502.Project.Runtime;
 
+import CSCI502.Project.ExecLib.Instruction;
+import CSCI502.Project.ExecLib.VariableStorage;
 import CSCI502.Project.Lexical.Analyzer;
 import CSCI502.Project.Lexical.BufferedTokenStream;
 import CSCI502.Project.Lexical.Token;
+import CSCI502.Project.Parsing.CNode;
+import CSCI502.Project.Parsing.InstructionBuilder;
+import CSCI502.Project.Parsing.ParseException;
+import CSCI502.Project.Parsing.Productions;
 import CSCI502.Project.Runtime.Machine.VirtualMachine;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 /**
  *
- * @author boley
+ * @author Joshua Boley
  */
 public class Interpreter
 {
@@ -25,6 +31,7 @@ public class Interpreter
     
     public Interpreter()
     {
+        VariableStorage.initialize();
         tokenizer = new Analyzer();
         m_tokenStream = new BufferedTokenStream(tokenizer);
         m_machine = new VirtualMachine();
@@ -42,11 +49,32 @@ public class Interpreter
         // Reinitialize tokenizer and generate new token stream
         tokenizer.reset();
         m_tokenStream.clear();
-        if (input instanceof String)
+
+        CNode codeTree = null;
+        if (input instanceof String) {
             tokenizer.init((String) input);
-        else if (input instanceof JTextField)
+            codeTree = Productions.statementBlock(m_tokenStream);
+        }
+        else if (input instanceof JTextField) {
             tokenizer.init((JTextField) input);
-        debugGenerateTokenStream();
+            try {
+                codeTree = Productions.commandLine(m_tokenStream);
+            } catch (ParseException ex) {
+                JOptionPane.showMessageDialog(null, ex.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+        if (codeTree == null)
+            return;
+        InstructionBuilder builder = new InstructionBuilder();
+        codeTree.execInstrGen(builder);
+        List<Instruction> program = builder.commit();
+        m_machine.load(program);
+        m_machine.execute();
+        StringBuilder sb = new StringBuilder();
+        m_machine.getAccumulatorValue(sb);
+        sb.append("\n");
+        m_console.append(sb.toString());
     }
     
     private void debugGenerateTokenStream() throws IOException

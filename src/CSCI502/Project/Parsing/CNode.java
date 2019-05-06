@@ -184,6 +184,6 @@ public class CNode
     public String   getCapture()    { return m_capture; }
     public int      getId()         { return m_id; }
 
-    public int execCodeGen (InstructionBuilder builder)
+    public int execInstrGen (InstructionBuilder builder)
             { return m_injected.apply(this, builder); }
 }

@@ -240,7 +240,8 @@ public class Analyzer
             StringBuilder processed = new StringBuilder();
             boolean isEscaped = false;
 
-            for (int i = 0; i < tokenStr.length(); ++i) {
+            for (int i = 1; i < tokenStr.length() - 1; ++i) {
+                // Note: Need to omit " marks
                 switch (tokenStr.charAt(i)) {
                 case '\\':
                     isEscaped = true;
