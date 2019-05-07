@@ -7,6 +7,7 @@ package CSCI502.Project;
 
 import CSCI502.Project.Runtime.Interpreter;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Label;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -54,8 +55,12 @@ class CmdLinePanel
         txtConsoleOut = new JTextArea();
         lblPrompt = new Label();
 
+        Font defaultFont = new Font(Font.MONOSPACED, Font.PLAIN, 15);
         tfConsoleIn.setToolTipText("Command Line");
         tfConsoleIn.setBorder(null);
+        tfConsoleIn.setFont(defaultFont);
+        tfConsoleIn.setBackground(Color.black);
+        tfConsoleIn.setForeground(new Color(245, 245, 245));
         tfConsoleIn.addKeyListener(this);
 
         txtConsoleOut.setColumns(20);
@@ -64,12 +69,17 @@ class CmdLinePanel
         txtConsoleOut.setTabSize(4);
         txtConsoleOut.setBorder(null);
         txtConsoleOut.setEditable(false);
+        txtConsoleOut.setFont(defaultFont);
+        txtConsoleOut.setBackground(Color.black);
+        txtConsoleOut.setForeground(new Color(245, 245, 245));
         txtConsoleOut.addFocusListener(this);
         
         cmdLinePane.setBorder(null);
         cmdLinePane.setViewportView(txtConsoleOut);
 
-        lblPrompt.setBackground(Color.WHITE);
+        lblPrompt.setFont(defaultFont);
+        lblPrompt.setBackground(Color.black);
+        lblPrompt.setForeground(new Color(245, 245, 245));
         lblPrompt.setText(">");
 
         GroupLayout layout = new GroupLayout(this);
@@ -89,7 +99,7 @@ class CmdLinePanel
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(cmdLinePane, GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+                .addComponent(cmdLinePane, GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(Alignment.LEADING, false)
                     .addComponent(tfConsoleIn)
                     .addComponent(lblPrompt, GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE))

@@ -2,6 +2,7 @@ package CSCI502.Project;
 
 import CSCI502.Project.Runtime.Interpreter;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -55,7 +56,7 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
      */
     @SuppressWarnings("unchecked")
     private void initComponents() {
-
+        Font defaultFont = new Font(Font.SANS_SERIF, Font.PLAIN, 15);
         spTextEditor = new JScrollPane();
         tpTextEditor = new JTextPane();
         tbCommonFuncs = new JToolBar();
@@ -71,13 +72,14 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
         miFileSaveAs = new JMenuItem();
         miFileSave = new JMenuItem();
         miFileClose = new JMenuItem();
-        jmEdit = new JMenu();
+//        jmEdit = new JMenu();
         miEditCopy = new JMenuItem();
         miEditPaste = new JMenuItem();
 
         setPreferredSize(new java.awt.Dimension(710, 500));
 
-        tpTextEditor.setBackground(new java.awt.Color(250, 250, 250));
+        tpTextEditor.setFont(defaultFont);
+        tpTextEditor.setBackground(new Color(250, 250, 250));
         tpTextEditor.setEnabled(false);
         tpTextEditor.setMaximumSize(new java.awt.Dimension(700, 500));
         tpTextEditor.setPreferredSize(new java.awt.Dimension(700, 500));
@@ -159,15 +161,15 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
 
         mbTextEditor.add(jmFile);
 
-        jmEdit.setText("Edit");
-
-        miEditCopy.setText("Copy");
-        jmEdit.add(miEditCopy);
-
-        miEditPaste.setText("Paste");
-        jmEdit.add(miEditPaste);
-
-        mbTextEditor.add(jmEdit);
+//        jmEdit.setText("Edit");
+//
+//        miEditCopy.setText("Copy");
+//        jmEdit.add(miEditCopy);
+//
+//        miEditPaste.setText("Paste");
+//        jmEdit.add(miEditPaste);
+//
+//        mbTextEditor.add(jmEdit);
 
         setJMenuBar(mbTextEditor);
 
@@ -235,6 +237,7 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
                     while ((line = br.readLine()) != null)
                         sb.append(line).append("\n");
                     tpTextEditor.setText(sb.toString());
+                    m_filePath = openFile.getAbsolutePath();
                     fr.close();
                 } catch (IOException ex) {
                     Logger.getLogger(TextEditorForm.class.getName()).log(Level.SEVERE, null, ex);
@@ -266,6 +269,7 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
                     m_filePath = saveFile.getAbsolutePath();
                 }
                 fw.close();
+                m_changed = false;
             }
             catch (IOException ex) {
                 Logger.getLogger(TextEditorForm.class.getName()).log(Level.SEVERE, null, ex);
@@ -287,6 +291,7 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
                 bw.write(tpTextEditor.getText());
             }
             fw.close();
+            m_changed = false;
         }
         catch (IOException ex) {
             Logger.getLogger(TextEditorForm.class.getName()).log(Level.SEVERE, null, ex);
@@ -308,9 +313,8 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
     
     private void runBttnActionPerformed(ActionEvent evt)
     {
-        String code = tpTextEditor.getText();
         try {
-            m_runtime.run(code);
+            m_runtime.run(tpTextEditor);
         } catch (IOException ex) {
             Logger.getLogger(TextEditorForm.class.getName()).log(Level.SEVERE, null, ex);
         }

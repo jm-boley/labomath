@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.util.List;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 
 /**
  * Lexical analyzer. Streams characters from an input file and attempts to generate
@@ -49,6 +50,11 @@ public class Analyzer
         seqno = 0;
     }
     
+    public void init (JTextPane txtPane)
+    {
+        init_common(txtPane.getText());
+    }
+    
     /**
      * Retrieves text from the command line and prepares for parsing.
      * @param tfCommandLine Command line text field.
@@ -58,11 +64,14 @@ public class Analyzer
         StringBuilder command = new StringBuilder();
         command.append(tfCommandLine.getText());
         command.append(";");
+        init_common(command.toString());
+    }
+    
+    private void init_common (String input)
+    {
         InputStream in = new ByteArrayInputStream(
-            command
-                .toString()
-                .getBytes()
-            );
+            input.getBytes()
+        );
         m_ifs = new PushbackInputStream(in);
         startLineNo = 0;
         startColNo = 0;
