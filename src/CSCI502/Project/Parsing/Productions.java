@@ -213,10 +213,17 @@ public class Productions
         
         CNode statementNode = null;
         // Attempt to parse print statement
-        if (nextToken.getId() == TSCode.IDENT && nextToken.getValue().equals("print")) {
-            if (tokenStream.atEOS())
-                throw new RuntimeException("EOS reached after " + nextToken + " parsed");
-            statementNode = Productions.print(tokenStream);
+        if (nextToken.getId() == TSCode.IDENT) {
+            switch(nextToken.getValue()) {
+                case "print":
+                    if (tokenStream.atEOS())
+                        throw new RuntimeException("EOS reached after " + nextToken + " parsed");
+                    statementNode = Productions.print(tokenStream);
+                    break;
+                case "clear":
+                    statementNode = Productions.clear(tokenStream);
+                default:;
+            }
         }
 
         // Attempt to parse assignment statement
@@ -345,10 +352,10 @@ public class Productions
         consumeTrailingSemicolon(tokenStream);
         
         // Build code subtree
-        BiFunction<CNode, InstructionBuilder, Integer> injected = (CNode node, InstructionBuilder builder) -> {
-            for (int i = 0; i < CNode.numChildren (node); ++i) {
+        BiFunction<CNode, InstructionBuilder, Integer> injected = (CNode thisNode, InstructionBuilder builder) -> {
+            for (int i = 0; i < CNode.numChildren (thisNode); ++i) {
                 // Execute child node code generation
-                CNode rvalNode = CNode.getChild (node, i);
+                CNode rvalNode = CNode.getChild (thisNode, i);
                 rvalNode.execInstrGen (builder);
                 builder
                     .PRINT (new Operand(Register.R1));
@@ -363,6 +370,22 @@ public class Productions
         }
 
         return printNode;
+    }
+    
+    static CNode clear(BufferedTokenStream tokenStream) throws ParseException
+    {
+        Token printToken = tokenStream.read();
+        
+        // The clear command takes an empty argument list, so just discard tokens up to and including semicolon
+        consumeLParen(tokenStream, ErrType.FUNCTION_CALL);
+        consumeRParen(tokenStream, ErrType.FUNCTION_CALL);
+        consumeTrailingSemicolon(tokenStream);
+        
+        BiFunction<CNode, InstructionBuilder, Integer> injected = (CNode thisNode, InstructionBuilder builder) -> {
+            builder.CLEAR();
+            return builder.getActiveCodeSegmentId();
+        };
+        return new CNode(printToken, injected);
     }
     
     static CNode lvalue (BufferedTokenStream tokenStream) throws ParseException
@@ -692,10 +715,11 @@ public class Productions
                             // Exponentials are right-associative, so go rh child first
                             CNode.getChild(node, 1)
                                 .execInstrGen(builder);
-                            builder.MOV (new Operand(Register.R3), new Operand(Register.R1));
+                            builder.PUSH (Register.R1);
                             CNode.getChild(node, 0).execInstrGen(builder);
                             
                             builder
+                                .POP(Register.R3)
                                 .EXP(Register.R1, Register.R3);
 
                             return builder.getActiveCodeSegmentId ();

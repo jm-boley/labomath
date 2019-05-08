@@ -19,7 +19,8 @@ public class Instruction
         NEGATION,
         PUSH,
         POP,
-        PRINT;
+        PRINT,
+        CLEAR;
     }
     
     private final Opcode m_opcode;

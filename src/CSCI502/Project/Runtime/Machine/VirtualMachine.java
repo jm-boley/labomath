@@ -346,6 +346,14 @@ public class VirtualMachine
                     sendToConsole((Register) src.getEnclosed());
                     break;
                 }
+                case CLEAR:
+                {
+                    // Clears console, also sets accumulator to 0
+                    m_console.setText("");
+                    VRegisterStore accum = m_registers.get(0);
+                    accum.set("", DataType.Imm_Str);
+                    break;
+                }
             }
         }
     }

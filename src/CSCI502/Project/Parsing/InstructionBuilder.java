@@ -205,6 +205,14 @@ public class InstructionBuilder
             return this;
         }
         
+        public InstructionBuilder CLEAR()
+        {
+            m_codeSegments
+                .get(m_activeSegment)
+                .add(new Instruction(Instruction.Opcode.CLEAR, null));
+            return this;
+        }
+        
 	public InstructionBuilder READ(Operand dst)
         {
             return this;
