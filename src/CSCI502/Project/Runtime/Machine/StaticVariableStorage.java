@@ -1,5 +1,6 @@
-package CSCI502.Project.ExecLib;
+package CSCI502.Project.Runtime.Machine;
 
+import CSCI502.Project.Runtime.Interface.DataType;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,9 +13,9 @@ import java.util.function.Function;
  * Encapsulates variable storage array
  * @author Joshua Boley
  */
-public class VariableStorage
+public class StaticVariableStorage
 {
-    private static VariableStorage storage = null;
+    private static StaticVariableStorage storage = null;
     
     /**
      * Initializes variable storage. Must be called before variable storage can
@@ -22,7 +23,7 @@ public class VariableStorage
      */
     public static void initialize()
     {
-        storage = new VariableStorage();
+        storage = new StaticVariableStorage();
     }
     
     /**
@@ -56,7 +57,7 @@ public class VariableStorage
     private int m_nextAddr;
     private final List<Byte> m_varstore;
     
-    private VariableStorage()
+    private StaticVariableStorage()
     {
         m_codecMap = new HashMap<>();
         m_nextAddr = 0;

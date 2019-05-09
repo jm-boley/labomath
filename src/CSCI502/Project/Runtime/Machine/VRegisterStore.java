@@ -1,6 +1,6 @@
 package CSCI502.Project.Runtime.Machine;
 
-import CSCI502.Project.ExecLib.DataType;
+import CSCI502.Project.Runtime.Interface.DataType;
 
 /**
  * Virtual register storage structure. Contains both the stored value
@@ -28,6 +28,11 @@ public class VRegisterStore
     {
         m_value = value;
         m_type = type;
+    }
+    
+    void set(Object value)
+    {
+        m_value = value;
     }
     
     Object getValue()

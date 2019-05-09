@@ -1,5 +1,6 @@
-package CSCI502.Project.ExecLib;
+package CSCI502.Project.Runtime.Interface;
 
+import CSCI502.Project.Runtime.Machine.StaticVariableStorage;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,7 +77,7 @@ public class SymbolTable
     
     private void createSymbolEntry(String name, DataType type)
     {
-        int offset = VariableStorage.allocate(type);
+        int offset = StaticVariableStorage.allocate(type);
         m_catalog.put(name, new Entry(name, type, offset));
     }
     

@@ -1,7 +1,7 @@
 package CSCI502.Project.Runtime;
 
-import CSCI502.Project.ExecLib.Instruction;
-import CSCI502.Project.ExecLib.VariableStorage;
+import CSCI502.Project.Runtime.Interface.Instruction;
+import CSCI502.Project.Runtime.Machine.StaticVariableStorage;
 import CSCI502.Project.Lexical.Analyzer;
 import CSCI502.Project.Lexical.BufferedTokenStream;
 import CSCI502.Project.Lexical.Token;
@@ -32,7 +32,7 @@ public class Interpreter
     
     public Interpreter()
     {
-        VariableStorage.initialize();
+        StaticVariableStorage.initialize();
         m_tokenizer = new Analyzer();
         m_tokenStream = new BufferedTokenStream(m_tokenizer);
         m_machine = new VirtualMachine();

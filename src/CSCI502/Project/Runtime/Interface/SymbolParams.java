@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package CSCI502.Project.ExecLib;
+package CSCI502.Project.Runtime.Interface;
 
 /**
  * Symbol parameters returned from the symbol table. Immutable type.

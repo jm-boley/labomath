@@ -1,6 +1,6 @@
 package CSCI502.Project.Parsing;
 
-import CSCI502.Project.ExecLib.DataType;
+import CSCI502.Project.Runtime.Interface.DataType;
 import CSCI502.Project.Lexical.Token;
 import java.util.ArrayList;
 import java.util.List;

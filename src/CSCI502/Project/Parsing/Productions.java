@@ -5,10 +5,10 @@
  */
 package CSCI502.Project.Parsing;
 
-import CSCI502.Project.ExecLib.DataType;
-import CSCI502.Project.ExecLib.Operand;
-import CSCI502.Project.ExecLib.SymbolParams;
-import CSCI502.Project.ExecLib.SymbolTable;
+import CSCI502.Project.Runtime.Interface.DataType;
+import CSCI502.Project.Runtime.Interface.Operand;
+import CSCI502.Project.Runtime.Interface.SymbolParams;
+import CSCI502.Project.Runtime.Interface.SymbolTable;
 import CSCI502.Project.Runtime.Machine.Register;
 import CSCI502.Project.Lexical.BufferedTokenStream;
 import CSCI502.Project.Lexical.TSCode;

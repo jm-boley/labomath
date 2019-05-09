@@ -1,12 +1,10 @@
 package CSCI502.Project.Runtime.Machine;
 
-import CSCI502.Project.ExecLib.DataType;
-import CSCI502.Project.ExecLib.Instruction;
-import CSCI502.Project.ExecLib.Operand;
-import CSCI502.Project.ExecLib.VariableStorage;
-import java.util.HashMap;
+import CSCI502.Project.Runtime.Interface.DataType;
+import CSCI502.Project.Runtime.Interface.Instruction;
+import CSCI502.Project.Runtime.Interface.Operand;
+import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 import javax.swing.JTextArea;
 
@@ -16,25 +14,26 @@ import javax.swing.JTextArea;
  */
 public class VirtualMachine
 {
-    private final Map<Integer, VRegisterStore> m_registers;
-    private final Stack<VRegisterStore> m_vstack;
+    private final EnumMap<Register, VRegisterStore> m_registers;
+    private final VStack m_vstack;
     private List<Instruction> m_instructionCache;
     private JTextArea m_console;
     
     public VirtualMachine()
     {
-        m_registers = new HashMap<>();
-        m_vstack = new Stack<>();
+        m_registers = new EnumMap<>(Register.class);
         m_console = null;
         
-        m_registers.put(Register.R1.id(), new VRegisterStore());
-        m_registers.put(Register.R2.id(), new VRegisterStore());
-        m_registers.put(Register.R3.id(), new VRegisterStore());
-        m_registers.put(Register.R4.id(), new VRegisterStore());
-        m_registers.put(Register.R5.id(), new VRegisterStore());
-        m_registers.put(Register.R6.id(), new VRegisterStore());
-        m_registers.put(Register.R7.id(), new VRegisterStore());
-        m_registers.put(Register.R8.id(), new VRegisterStore());
+        // Initialize registers
+        for (Register reg : Register.values())
+            m_registers.put(reg, new VRegisterStore());
+        
+        // Initialize instruction, stack and base pointers
+        m_registers.get(Register.IP).set(0, DataType.Imm_Int4);
+
+        // Initialize virtual stack (base and stack pointer initialization handled
+        // in VStack constructor
+        m_vstack = new VStack(m_registers.get(Register.BP), m_registers.get(Register.SP));
     }
     
     public void initializeIO(JTextArea console)
@@ -49,7 +48,10 @@ public class VirtualMachine
     
     public void execute()
     {
-        for (Instruction instr : m_instructionCache) {
+        int instrAddr;
+        boolean jumped = false;
+        while ((instrAddr = (int) m_registers.get(Register.IP).getValue()) < m_instructionCache.size()) {
+            Instruction instr = m_instructionCache.get(instrAddr);
             Instruction.Opcode opcode = instr.getCode();
             List<Operand> operands = instr.getOperands();
             
@@ -67,22 +69,22 @@ public class VirtualMachine
                                 {
                                     Register srcRegId = (Register) src.getEnclosed(),
                                              dstRegId = (Register) dst.getEnclosed();
-                                    VRegisterStore srcReg = m_registers.get(srcRegId.id()),
-                                                   dstReg = m_registers.get(dstRegId.id());
+                                    VRegisterStore srcReg = m_registers.get(srcRegId),
+                                                   dstReg = m_registers.get(dstRegId);
                                     dstReg.set(srcReg.getValue(), srcReg.getType());
                                     break;
                                 }
                                 case Imm_Int4:
                                 {
                                     Register dstRegId = (Register) dst.getEnclosed();
-                                    VRegisterStore dstReg = m_registers.get(dstRegId.id());
+                                    VRegisterStore dstReg = m_registers.get(dstRegId);
                                     dstReg.set(src.getEnclosed(), DataType.Int4);
                                     break;
                                 }
                                 case Imm_Str:
                                 {
                                     Register dstRegId = (Register) dst.getEnclosed();
-                                    VRegisterStore dstReg = m_registers.get(dstRegId.id());
+                                    VRegisterStore dstReg = m_registers.get(dstRegId);
                                     dstReg.set(src.getEnclosed(), DataType.Imm_Str);
                                     break;
                                 }
@@ -91,9 +93,9 @@ public class VirtualMachine
                                     if (!src.isReference())
                                         throw new UnsupportedOperationException("MOV: Attempting to move to register from unrecognized location type");
                                     Register dstRegId = (Register) dst.getEnclosed();
-                                    VRegisterStore dstReg = m_registers.get(dstRegId.id());
+                                    VRegisterStore dstReg = m_registers.get(dstRegId);
                                     dstReg.set(
-                                        VariableStorage.retrieve(
+                                        StaticVariableStorage.retrieve(
                                             src.getType(),
                                             (int) src.getEnclosed()
                                         ),
@@ -110,11 +112,11 @@ public class VirtualMachine
                                 case Register:
                                 {
                                     Register srcRegId = (Register) src.getEnclosed();
-                                    VRegisterStore srcReg = m_registers.get(srcRegId.id());
+                                    VRegisterStore srcReg = m_registers.get(srcRegId);
                                     // Perform type check
                                     if (srcReg.getType() != dst.getType())
                                         throw new UnsupportedOperationException("MOV: Type mismatch, conversion not supported");
-                                    VariableStorage.assign(srcReg.getValue(), dst.getType(), (int) dst.getEnclosed());
+                                    StaticVariableStorage.assign(srcReg.getValue(), dst.getType(), (int) dst.getEnclosed());
                                     break;
                                 }
                                 case Imm_Int4:
@@ -140,8 +142,8 @@ public class VirtualMachine
                     
                     Register dstRegId = (Register) dst.getEnclosed(),
                              srcRegId = (Register) src.getEnclosed();
-                    VRegisterStore dstReg = m_registers.get(dstRegId.id()),
-                                   srcReg = m_registers.get(srcRegId.id());
+                    VRegisterStore dstReg = m_registers.get(dstRegId),
+                                   srcReg = m_registers.get(srcRegId);
                     
                     if (dstReg.getType() != srcReg.getType())
                         throw new UnsupportedOperationException(
@@ -175,8 +177,8 @@ public class VirtualMachine
                     
                     Register dstRegId = (Register) dst.getEnclosed(),
                              srcRegId = (Register) src.getEnclosed();
-                    VRegisterStore dstReg = m_registers.get(dstRegId.id()),
-                                   srcReg = m_registers.get(srcRegId.id());
+                    VRegisterStore dstReg = m_registers.get(dstRegId),
+                                   srcReg = m_registers.get(srcRegId);
                     
                     if (dstReg.getType() != srcReg.getType())
                         throw new UnsupportedOperationException(
@@ -210,8 +212,8 @@ public class VirtualMachine
                     
                     Register dstRegId = (Register) dst.getEnclosed(),
                              srcRegId = (Register) src.getEnclosed();
-                    VRegisterStore dstReg = m_registers.get(dstRegId.id()),
-                                   srcReg = m_registers.get(srcRegId.id());
+                    VRegisterStore dstReg = m_registers.get(dstRegId),
+                                   srcReg = m_registers.get(srcRegId);
                     
                     if (dstReg.getType() != srcReg.getType())
                         throw new UnsupportedOperationException(
@@ -246,9 +248,9 @@ public class VirtualMachine
                     Register dstRegId = (Register) dst.getEnclosed(),
                              srcRegId = (Register) src.getEnclosed(),
                              modRegId = Register.R4;
-                    VRegisterStore dstReg = m_registers.get(dstRegId.id()),
-                                   srcReg = m_registers.get(srcRegId.id()),
-                                   modReg = m_registers.get(modRegId.id());
+                    VRegisterStore dstReg = m_registers.get(dstRegId),
+                                   srcReg = m_registers.get(srcRegId),
+                                   modReg = m_registers.get(modRegId);
                     
                     if (dstReg.getType() != srcReg.getType())
                         throw new UnsupportedOperationException(
@@ -281,10 +283,10 @@ public class VirtualMachine
                             ", src=" + src.getType().toString()
                         );
                     VRegisterStore dstReg = m_registers.get(
-                                        ((Register) dst.getEnclosed()).id()
+                                        ((Register) dst.getEnclosed()) 
                                     ),
                                    srcReg = m_registers.get(
-                                        ((Register) src.getEnclosed()).id()
+                                        ((Register) src.getEnclosed()) 
                                     );
                     
                     if (dstReg.getType() != srcReg.getType())
@@ -311,7 +313,7 @@ public class VirtualMachine
                 {
                     Operand op = operands.get(0);
                     VRegisterStore opReg = m_registers.get(
-                        ((Register) op.getEnclosed()).id()
+                        ((Register) op.getEnclosed()) 
                     );
                     Object negResult;
                     switch (opReg.getType()) {
@@ -327,7 +329,7 @@ public class VirtualMachine
                 {
                     Operand src = operands.get(0);
                     Register srcRegId = (Register) src.getEnclosed();
-                    VRegisterStore srcReg = m_registers.get(srcRegId.id());
+                    VRegisterStore srcReg = m_registers.get(srcRegId);
                     m_vstack.push(new VRegisterStore(srcReg.getValue(), srcReg.getType()));
                     break;
                 }
@@ -335,8 +337,8 @@ public class VirtualMachine
                 {
                     Operand dst = operands.get(0);
                     Register dstRegId = (Register) dst.getEnclosed();
-                    VRegisterStore dstReg = m_registers.get(dstRegId.id());
-                    VRegisterStore temp = m_vstack.pop();
+                    VRegisterStore dstReg = m_registers.get(dstRegId );
+                    VRegisterStore temp = (VRegisterStore) m_vstack.pop();
                     dstReg.set(temp.getValue(), temp.getType());
                     break;
                 }
@@ -350,17 +352,21 @@ public class VirtualMachine
                 {
                     // Clears console, also sets accumulator to 0
                     m_console.setText("");
-                    VRegisterStore accum = m_registers.get(0);
+                    VRegisterStore accum = m_registers.get(Register.R1);
                     accum.set("", DataType.Imm_Str);
                     break;
                 }
             }
+            
+            // Increment instruction pointer if a jump was not executed
+            if (!jumped)
+                m_registers.get(Register.IP).set(++instrAddr);
         }
     }
     
     public void getAccumulatorValue(StringBuilder sb)
     {
-        VRegisterStore accumulator = m_registers.get(0);
+        VRegisterStore accumulator = m_registers.get(Register.R1);
         switch (accumulator.getType()) {
             case Int4:
                 sb.append((int) accumulator.getValue());
@@ -370,12 +376,12 @@ public class VirtualMachine
     
     private void sendToConsole(Register src)
     {
-        VRegisterStore srcReg = m_registers.get(src.id());
+        VRegisterStore srcReg = m_registers.get(src );
         // If accumulator contains a symbol reference then dereference and overwrite with stored value
 //        if (srcReg.valIsRef()) {
 //            SymbolParams symParams = SymbolTable.getVariableParams((String) srcReg.getValue());
 //            srcReg.set(
-//                VariableStorage.retrieve(symParams.getType(), symParams.getOffset()),
+//                StaticVariableStorage.retrieve(symParams.getType(), symParams.getOffset()),
 //                symParams.getType(),
 //                false
 //            );
