@@ -5,7 +5,6 @@ import CSCI502.Project.Runtime.Interface.Instruction;
 import CSCI502.Project.Runtime.Interface.Operand;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Stack;
 import javax.swing.JTextArea;
 
 /**
@@ -14,7 +13,9 @@ import javax.swing.JTextArea;
  */
 public class VirtualMachine
 {
-    private final EnumMap<Register, VRegisterStore> m_registers;
+    private static final boolean debug = true;
+    
+    private final EnumMap<Register, RegisterContent> m_registers;
     private final VStack m_vstack;
     private List<Instruction> m_instructionCache;
     private JTextArea m_console;
@@ -26,7 +27,7 @@ public class VirtualMachine
         
         // Initialize registers
         for (Register reg : Register.values())
-            m_registers.put(reg, new VRegisterStore());
+            m_registers.put(reg, new RegisterContent());
         
         // Initialize instruction, stack and base pointers
         m_registers.get(Register.IP).set(0, DataType.Imm_Int4);
@@ -60,8 +61,10 @@ public class VirtualMachine
                 {
                     Operand dst = operands.get(0),
                             src = operands.get(1);
-                    if (dst.getType() == DataType.Imm_Int4 || dst.getType() == DataType.Imm_Str)
-                        throw new UnsupportedOperationException("MOV: Only moves to register or reference stored in a register supported");
+                    if (debug) {
+                        if (dst.getType() == DataType.Imm_Int4 || dst.getType() == DataType.Imm_Str)
+                            throw new UnsupportedOperationException("MOV: Only moves to register or reference stored in a register supported");
+                    }
                     switch (dst.getType()) {
                         case Register:
                             switch (src.getType()) {
@@ -69,31 +72,33 @@ public class VirtualMachine
                                 {
                                     Register srcRegId = (Register) src.getEnclosed(),
                                              dstRegId = (Register) dst.getEnclosed();
-                                    VRegisterStore srcReg = m_registers.get(srcRegId),
-                                                   dstReg = m_registers.get(dstRegId);
+                                    RegisterContent srcReg = m_registers.get(srcRegId);
+                                    RegisterContent dstReg = m_registers.get(dstRegId);
                                     dstReg.set(srcReg.getValue(), srcReg.getType());
                                     break;
                                 }
                                 case Imm_Int4:
                                 {
                                     Register dstRegId = (Register) dst.getEnclosed();
-                                    VRegisterStore dstReg = m_registers.get(dstRegId);
+                                    RegisterContent dstReg = m_registers.get(dstRegId);
                                     dstReg.set(src.getEnclosed(), DataType.Int4);
                                     break;
                                 }
                                 case Imm_Str:
                                 {
                                     Register dstRegId = (Register) dst.getEnclosed();
-                                    VRegisterStore dstReg = m_registers.get(dstRegId);
+                                    RegisterContent dstReg = m_registers.get(dstRegId);
                                     dstReg.set(src.getEnclosed(), DataType.Imm_Str);
                                     break;
                                 }
                                 default:
                                 {
-                                    if (!src.isReference())
-                                        throw new UnsupportedOperationException("MOV: Attempting to move to register from unrecognized location type");
+                                    if (debug) {
+                                        if (!src.isReference())
+                                            throw new UnsupportedOperationException("MOV: Attempting to move to register from unrecognized location type");
+                                    }
                                     Register dstRegId = (Register) dst.getEnclosed();
-                                    VRegisterStore dstReg = m_registers.get(dstRegId);
+                                    RegisterContent dstReg = m_registers.get(dstRegId);
                                     dstReg.set(
                                         StaticVariableStorage.retrieve(
                                             src.getType(),
@@ -106,16 +111,20 @@ public class VirtualMachine
                             break;
                         default:
                             // Moving to variable storage
-                            if (!dst.isReference())
-                                throw new RuntimeException("MOV: Attempted to move to an unknown location type");
+                            if (debug) {
+                                if (!dst.isReference())
+                                    throw new RuntimeException("MOV: Attempted to move to an unknown location type");
+                            }
                             switch (src.getType()) {
                                 case Register:
                                 {
                                     Register srcRegId = (Register) src.getEnclosed();
-                                    VRegisterStore srcReg = m_registers.get(srcRegId);
+                                    RegisterContent srcReg = m_registers.get(srcRegId);
                                     // Perform type check
-                                    if (srcReg.getType() != dst.getType())
-                                        throw new UnsupportedOperationException("MOV: Type mismatch, conversion not supported");
+                                    if (debug) {
+                                        if (srcReg.getType() != dst.getType())
+                                            throw new UnsupportedOperationException("MOV: Type mismatch, conversion not supported");
+                                    }
                                     StaticVariableStorage.assign(srcReg.getValue(), dst.getType(), (int) dst.getEnclosed());
                                     break;
                                 }
@@ -133,23 +142,27 @@ public class VirtualMachine
                     // Get register references and perform type check
                     Operand dst = operands.get(0),
                             src = operands.get(1);
-                    
-                    if (dst.getType() != DataType.Register || src.getType() != DataType.Register)
-                        throw new UnsupportedOperationException(
-                            "ADD: An operand does not name a register; dst=" + dst.getType().toString() +
-                            ", src=" + src.getType().toString()
-                        );
+
+                    if (debug) {
+                        if (dst.getType() != DataType.Register || src.getType() != DataType.Register)
+                            throw new UnsupportedOperationException(
+                                "ADD: An operand does not name a register; dst=" + dst.getType().toString() +
+                                ", src=" + src.getType().toString()
+                            );
+                    }
                     
                     Register dstRegId = (Register) dst.getEnclosed(),
                              srcRegId = (Register) src.getEnclosed();
-                    VRegisterStore dstReg = m_registers.get(dstRegId),
+                    RegisterContent dstReg = m_registers.get(dstRegId),
                                    srcReg = m_registers.get(srcRegId);
-                    
-                    if (dstReg.getType() != srcReg.getType())
-                        throw new UnsupportedOperationException(
-                            "ADD: Type mismatch, unable to convert from " + srcReg.getType().toString() +
-                            " to " + dstReg.getType().toString()
-                        );
+
+                    if (debug) {
+                        if (dstReg.getType() != srcReg.getType())
+                            throw new UnsupportedOperationException(
+                                "ADD: Type mismatch, unable to convert from " + srcReg.getType().toString() +
+                                " to " + dstReg.getType().toString()
+                            );
+                    }
                     
                     // Perform addition op and set result to dst operand
                     Object result;
@@ -169,22 +182,26 @@ public class VirtualMachine
                     Operand dst = operands.get(0),
                             src = operands.get(1);
                     
-                    if (dst.getType() != DataType.Register || src.getType() != DataType.Register)
-                        throw new UnsupportedOperationException(
-                            "SUBTRACT: An operand does not name a register; dst=" + dst.getType().toString() +
-                            ", src=" + src.getType().toString()
-                        );
+                    if (debug) {
+                        if (dst.getType() != DataType.Register || src.getType() != DataType.Register)
+                            throw new UnsupportedOperationException(
+                                "SUBTRACT: An operand does not name a register; dst=" + dst.getType().toString() +
+                                ", src=" + src.getType().toString()
+                            );
+                    }
                     
                     Register dstRegId = (Register) dst.getEnclosed(),
                              srcRegId = (Register) src.getEnclosed();
-                    VRegisterStore dstReg = m_registers.get(dstRegId),
+                    RegisterContent dstReg = m_registers.get(dstRegId),
                                    srcReg = m_registers.get(srcRegId);
                     
-                    if (dstReg.getType() != srcReg.getType())
-                        throw new UnsupportedOperationException(
-                            "SUBTRACT: Type mismatch, unable to convert from " + srcReg.getType().toString() +
-                            " to " + dstReg.getType().toString()
-                        );
+                    if (debug) {
+                        if (dstReg.getType() != srcReg.getType())
+                            throw new UnsupportedOperationException(
+                                "SUBTRACT: Type mismatch, unable to convert from " + srcReg.getType().toString() +
+                                " to " + dstReg.getType().toString()
+                            );
+                    }
                     
                     // Perform addition op and set result to dst register
                     Object result;
@@ -203,23 +220,27 @@ public class VirtualMachine
                     // Get register references and perform type check
                     Operand dst = operands.get(0),
                             src = operands.get(1);
-                    
-                    if (dst.getType() != DataType.Register || src.getType() != DataType.Register)
-                        throw new UnsupportedOperationException(
-                            "MULTIPLY: An operand does not name a register; dst=" + dst.getType().toString() +
-                            ", src=" + src.getType().toString()
-                        );
+
+                    if (debug) {
+                        if (dst.getType() != DataType.Register || src.getType() != DataType.Register)
+                            throw new UnsupportedOperationException(
+                                "MULTIPLY: An operand does not name a register; dst=" + dst.getType().toString() +
+                                ", src=" + src.getType().toString()
+                            );
+                    }
                     
                     Register dstRegId = (Register) dst.getEnclosed(),
                              srcRegId = (Register) src.getEnclosed();
-                    VRegisterStore dstReg = m_registers.get(dstRegId),
+                    RegisterContent dstReg = m_registers.get(dstRegId),
                                    srcReg = m_registers.get(srcRegId);
                     
-                    if (dstReg.getType() != srcReg.getType())
-                        throw new UnsupportedOperationException(
-                            "MULTIPLY: Type mismatch, unable to convert from " + srcReg.getType().toString() +
-                            " to " + dstReg.getType().toString()
-                        );
+                    if (debug) {
+                        if (dstReg.getType() != srcReg.getType())
+                            throw new UnsupportedOperationException(
+                                "MULTIPLY: Type mismatch, unable to convert from " + srcReg.getType().toString() +
+                                " to " + dstReg.getType().toString()
+                            );
+                    }
                     
                     // Perform multiplication op and set result to dst register
                     Object result;
@@ -238,25 +259,29 @@ public class VirtualMachine
                     // Get register references and perform type check
                     Operand dst = operands.get(0),
                             src = operands.get(1);
-                    
-                    if (dst.getType() != DataType.Register || src.getType() != DataType.Register)
-                        throw new UnsupportedOperationException(
-                            "DIVIDE: An operand does not name a register; dst=" + dst.getType().toString() +
-                            ", src=" + src.getType().toString()
-                        );
+
+                    if (debug) {
+                        if (dst.getType() != DataType.Register || src.getType() != DataType.Register)
+                            throw new UnsupportedOperationException(
+                                "DIVIDE: An operand does not name a register; dst=" + dst.getType().toString() +
+                                ", src=" + src.getType().toString()
+                            );
+                    }
                     
                     Register dstRegId = (Register) dst.getEnclosed(),
                              srcRegId = (Register) src.getEnclosed(),
                              modRegId = Register.R4;
-                    VRegisterStore dstReg = m_registers.get(dstRegId),
+                    RegisterContent dstReg = m_registers.get(dstRegId),
                                    srcReg = m_registers.get(srcRegId),
                                    modReg = m_registers.get(modRegId);
-                    
-                    if (dstReg.getType() != srcReg.getType())
-                        throw new UnsupportedOperationException(
-                            "DIVIDE: Type mismatch, unable to convert from " + srcReg.getType().toString() +
-                            " to " + dstReg.getType().toString()
-                        );
+
+                    if (debug) {
+                        if (dstReg.getType() != srcReg.getType())
+                            throw new UnsupportedOperationException(
+                                "DIVIDE: Type mismatch, unable to convert from " + srcReg.getType().toString() +
+                                " to " + dstReg.getType().toString()
+                            );
+                    }
                     
                     // Perform div/mod op and set results to dst, R4 (mod) register
                     Object divResult,
@@ -277,23 +302,29 @@ public class VirtualMachine
                 {
                     Operand dst = operands.get(0),
                             src = operands.get(1);
-                    if (dst.getType() != DataType.Register || src.getType() != DataType.Register)
-                        throw new UnsupportedOperationException(
-                            "EXP: An operand does not name a register; dst=" + dst.getType().toString() +
-                            ", src=" + src.getType().toString()
-                        );
-                    VRegisterStore dstReg = m_registers.get(
+                    
+                    if (debug) {
+                        if (dst.getType() != DataType.Register || src.getType() != DataType.Register)
+                            throw new UnsupportedOperationException(
+                                "EXP: An operand does not name a register; dst=" + dst.getType().toString() +
+                                ", src=" + src.getType().toString()
+                            );
+                    }
+                    
+                    RegisterContent dstReg = m_registers.get(
                                         ((Register) dst.getEnclosed()) 
                                     ),
                                    srcReg = m_registers.get(
                                         ((Register) src.getEnclosed()) 
                                     );
                     
-                    if (dstReg.getType() != srcReg.getType())
-                        throw new UnsupportedOperationException(
-                            "EXP: Type mismatch, unable to convert from " + srcReg.getType().toString() +
-                            " to " + dstReg.getType().toString()
-                        );
+                    if (debug) {
+                        if (dstReg.getType() != srcReg.getType())
+                            throw new UnsupportedOperationException(
+                                "EXP: Type mismatch, unable to convert from " + srcReg.getType().toString() +
+                                " to " + dstReg.getType().toString()
+                            );
+                    }
 
                     Object expResult;
                     switch (dstReg.getType()) {
@@ -312,7 +343,7 @@ public class VirtualMachine
                 case NEGATION:
                 {
                     Operand op = operands.get(0);
-                    VRegisterStore opReg = m_registers.get(
+                    RegisterContent opReg = m_registers.get(
                         ((Register) op.getEnclosed()) 
                     );
                     Object negResult;
@@ -329,16 +360,16 @@ public class VirtualMachine
                 {
                     Operand src = operands.get(0);
                     Register srcRegId = (Register) src.getEnclosed();
-                    VRegisterStore srcReg = m_registers.get(srcRegId);
-                    m_vstack.push(new VRegisterStore(srcReg.getValue(), srcReg.getType()));
+                    RegisterContent srcReg = m_registers.get(srcRegId);
+                    m_vstack.push(new RegisterContent(srcReg.getValue(), srcReg.getType()));
                     break;
                 }
                 case POP:
                 {
                     Operand dst = operands.get(0);
                     Register dstRegId = (Register) dst.getEnclosed();
-                    VRegisterStore dstReg = m_registers.get(dstRegId );
-                    VRegisterStore temp = (VRegisterStore) m_vstack.pop();
+                    RegisterContent dstReg = m_registers.get(dstRegId );
+                    RegisterContent temp = (RegisterContent) m_vstack.pop();
                     dstReg.set(temp.getValue(), temp.getType());
                     break;
                 }
@@ -352,7 +383,7 @@ public class VirtualMachine
                 {
                     // Clears console, also sets accumulator to 0
                     m_console.setText("");
-                    VRegisterStore accum = m_registers.get(Register.R1);
+                    RegisterContent accum = m_registers.get(Register.R1);
                     accum.set("", DataType.Imm_Str);
                     break;
                 }
@@ -360,13 +391,15 @@ public class VirtualMachine
             
             // Increment instruction pointer if a jump was not executed
             if (!jumped)
-                m_registers.get(Register.IP).set(++instrAddr);
+                m_registers
+                    .get(Register.IP)
+                    .set(++instrAddr);
         }
     }
     
     public void getAccumulatorValue(StringBuilder sb)
     {
-        VRegisterStore accumulator = m_registers.get(Register.R1);
+        RegisterContent accumulator = m_registers.get(Register.R1);
         switch (accumulator.getType()) {
             case Int4:
                 sb.append((int) accumulator.getValue());
@@ -376,7 +409,7 @@ public class VirtualMachine
     
     private void sendToConsole(Register src)
     {
-        VRegisterStore srcReg = m_registers.get(src );
+        RegisterContent srcReg = m_registers.get(src );
         // If accumulator contains a symbol reference then dereference and overwrite with stored value
 //        if (srcReg.valIsRef()) {
 //            SymbolParams symParams = SymbolTable.getVariableParams((String) srcReg.getValue());

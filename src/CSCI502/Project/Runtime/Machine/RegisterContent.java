@@ -7,18 +7,18 @@ import CSCI502.Project.Runtime.Interface.DataType;
  * and its type.
  * @author Joshua Boley
  */
-public class VRegisterStore
+public class RegisterContent
 {
     private Object m_value;
     private DataType m_type;
     
-    VRegisterStore()
+    RegisterContent()
     {
         m_value = null;
         m_type = DataType.Empty;
     }
     
-    VRegisterStore(Object value, DataType type)
+    RegisterContent(Object value, DataType type)
     {
         m_value = value;
         m_type = type;

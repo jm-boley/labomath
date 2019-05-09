@@ -15,10 +15,10 @@ import java.util.List;
 class VStack
 {
     private static final int ALLOC_SZ = 10;     // Number of slots to allocate when growing the stack
-    private final List<Object> m_stack;
-    private final VRegisterStore m_stackPointer;
+    private final List<RegisterContent> m_stack;
+    private final RegisterContent m_stackPointer;
     
-    VStack(VRegisterStore basePointer, VRegisterStore stackPointer)
+    VStack(RegisterContent basePointer, RegisterContent stackPointer)
     {
         // Initialize base pointer, stack pointer
         basePointer.set(-1, DataType.Imm_Int4);
@@ -28,7 +28,7 @@ class VStack
         // Initialize stack storage
         m_stack = new ArrayList<>();
         for (int i = 0; i < ALLOC_SZ; ++i)
-            m_stack.add(0);
+            m_stack.add(new RegisterContent(0, DataType.Imm_Int4));
     }
     
     /**
@@ -37,14 +37,14 @@ class VStack
      * as needed.
      * @param obj Object to store
      */
-    void push(Object obj)
+    void push(RegisterContent obj)
     {
         int stackAddr = (int) m_stackPointer.getValue();
         
         // Grow stack if more storage needed
         if (stackAddr >= m_stack.size()) {
             for (int i = 0; i < ALLOC_SZ; ++i)
-                m_stack.add(0);
+                m_stack.add(new RegisterContent(0, DataType.Imm_Int4));
         }
         
         // Increment stack pointer and add object to stack
@@ -57,14 +57,14 @@ class VStack
      * stack pointer. Allocated stack size does not change.
      * @return Object referenced by stack pointer
      */
-    Object pop()
+    RegisterContent pop()
     {
         int stackAddr = (int) m_stackPointer.getValue();
         if (stackAddr < 0)
             throw new RuntimeException("Stack underflow");
 
         // Get object from stack and decrement stack pointer
-        Object popped = m_stack.get(stackAddr);
+        RegisterContent popped = m_stack.get(stackAddr);
         m_stackPointer.set(stackAddr - 1, DataType.Imm_Int4);
         
         return popped;
