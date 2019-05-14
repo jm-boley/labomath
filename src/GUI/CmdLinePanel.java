@@ -5,7 +5,7 @@
  */
 package GUI;
 
-import Runtime.JIT.JITCompiler;
+import Runtime.JIT.Compiler;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Label;
@@ -37,9 +37,9 @@ class CmdLinePanel
     private JTextField tfConsoleIn;
     private Label lblPrompt;
     
-    private final JITCompiler interpreter;
+    private final Compiler interpreter;
 
-    public CmdLinePanel(JITCompiler core)
+    public CmdLinePanel(Compiler core)
     {
         super();
         this.interpreter = core;

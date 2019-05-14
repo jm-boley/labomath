@@ -1,6 +1,6 @@
 package GUI;
 
-import Runtime.JIT.JITCompiler;
+import Runtime.JIT.Compiler;
 
 /**
  *
@@ -8,7 +8,7 @@ import Runtime.JIT.JITCompiler;
  */
 public class TextEditorFormMockup extends javax.swing.JInternalFrame {
 
-    private final JITCompiler m_runtime;
+    private final Compiler m_runtime;
     private String m_filePath;
     private boolean m_changed;
     
@@ -16,7 +16,7 @@ public class TextEditorFormMockup extends javax.swing.JInternalFrame {
      * Creates new form TextEditorForm
      * @param interpreter
      */
-    public TextEditorFormMockup(JITCompiler interpreter) {
+    public TextEditorFormMockup(Compiler interpreter) {
         m_runtime = interpreter;
         m_filePath = null;
         m_changed = false;

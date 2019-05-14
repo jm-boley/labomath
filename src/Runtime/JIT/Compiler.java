@@ -21,7 +21,7 @@ import javax.swing.JTextPane;
  *
  * @author Joshua Boley
  */
-public class JITCompiler
+public class Compiler
 {
     private final Analyzer m_tokenizer;
     private final BufferedTokenStream m_tokenStream;
@@ -30,7 +30,7 @@ public class JITCompiler
     // DEBUG
     private JTextArea m_console;
     
-    public JITCompiler()
+    public Compiler()
     {
         StaticVariableStorage.initialize();
         m_tokenizer = new Analyzer();
