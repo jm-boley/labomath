@@ -5,7 +5,7 @@
  */
 package CSCI502.Project;
 
-import CSCI502.Project.Runtime.Interpreter;
+import CSCI502.Project.Runtime.JITCompiler;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Label;
@@ -37,9 +37,9 @@ class CmdLinePanel
     private JTextField tfConsoleIn;
     private Label lblPrompt;
     
-    private final Interpreter interpreter;
+    private final JITCompiler interpreter;
 
-    public CmdLinePanel(Interpreter core)
+    public CmdLinePanel(JITCompiler core)
     {
         super();
         this.interpreter = core;

@@ -3,19 +3,19 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package CSCI502.Project.Parsing;
+package CSCI502.Project.Parser;
 
 import CSCI502.Project.Runtime.Interface.DataType;
 import CSCI502.Project.Runtime.Interface.Operand;
 import CSCI502.Project.Runtime.Interface.SymbolParams;
 import CSCI502.Project.Runtime.Interface.SymbolTable;
-import CSCI502.Project.Runtime.Machine.Register;
+import CSCI502.Project.Runtime.Machine.RegId;
 import CSCI502.Project.Lexical.BufferedTokenStream;
 import CSCI502.Project.Lexical.TSCode;
 import CSCI502.Project.Lexical.Token;
-import CSCI502.Project.Parsing.CompilerErrors.ErrMessage;
-import CSCI502.Project.Parsing.CompilerErrors.ErrType;
-import CSCI502.Project.Parsing.CompilerErrors.Level;
+import CSCI502.Project.Parser.CompilerErrors.ErrMessage;
+import CSCI502.Project.Parser.CompilerErrors.ErrType;
+import CSCI502.Project.Parser.CompilerErrors.Level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -30,7 +30,7 @@ abstract class StatusFlags
  * Recursive descent parser production rules implementation
  * @author Joshua Boley
  */
-public class Productions
+abstract public class Productions
 {
     /**
      * Discards the remaining tokens in the current statement (to and including semicolon)
@@ -292,7 +292,7 @@ public class Productions
         BiFunction<CNode, InstructionBuilder, Integer> injected = (CNode thisNode, InstructionBuilder builder) -> {
             // Build rval evaluation code and move to R2
             CNode.getChild (thisNode, 1).execInstrGen (builder);
-            builder.MOV(new Operand(Register.R2), new Operand(Register.R1));
+            builder.MOV(new Operand(RegId.R2), new Operand(RegId.R1));
             
             // Build lval assignment code
             CNode.getChild (thisNode, 0).execInstrGen (builder);
@@ -358,7 +358,7 @@ public class Productions
                 CNode rvalNode = CNode.getChild (thisNode, i);
                 rvalNode.execInstrGen (builder);
                 builder
-                    .PRINT (new Operand(Register.R1));
+                    .PRINT (new Operand(RegId.R1));
             }
 
             return builder.getActiveCodeSegmentId ();
@@ -406,7 +406,7 @@ public class Productions
             // Get relative address of symbol and move contents of register R1 to storage
             SymbolParams symParams = SymbolTable.getVariableParams(symbol);
             Operand ref = new Operand(symParams.getType(), symParams.getOffset());
-            builder.MOV(ref, new Operand(Register.R1));
+            builder.MOV(ref, new Operand(RegId.R1));
             
             return builder.getActiveCodeSegmentId();
         };
@@ -442,8 +442,8 @@ public class Productions
         final String literalVal = strToken.getValue();
         BiFunction<CNode, InstructionBuilder, Integer> injected = (CNode node, InstructionBuilder builder) -> {
             builder
-                .MOV  (new Operand(Register.R1), new Operand(literalVal))
-                .PUSH (Register.R1);
+                .MOV  (new Operand(RegId.R1), new Operand(literalVal))
+                .PUSH (RegId.R1);
 
             return builder.getActiveCodeSegmentId ();
         };
@@ -477,13 +477,13 @@ public class Productions
                         (CNode node, InstructionBuilder builder) -> {
                             CNode.getChild(node, 0)
                                 .execInstrGen(builder);
-                            builder.PUSH (Register.R1);
+                            builder.PUSH (RegId.R1);
                             CNode.getChild(node, 1).execInstrGen(builder);
                             
                             builder
-                                .MOV(new Operand(Register.R3), new Operand(Register.R1))
-                                .POP(Register.R1)
-                                .ADD(Register.R1, Register.R3);
+                                .MOV(new Operand(RegId.R3), new Operand(RegId.R1))
+                                .POP(RegId.R1)
+                                .ADD(RegId.R1, RegId.R3);
 
                             return builder.getActiveCodeSegmentId ();
                         };
@@ -497,13 +497,13 @@ public class Productions
                         (CNode node, InstructionBuilder builder) -> {
                             CNode.getChild(node, 0)
                                 .execInstrGen(builder);
-                            builder.PUSH (Register.R1);
+                            builder.PUSH (RegId.R1);
                             CNode.getChild(node, 1).execInstrGen(builder);
                             
                             builder
-                                .MOV(new Operand(Register.R3), new Operand(Register.R1))
-                                .POP(Register.R1)
-                                .SUB(Register.R1, Register.R3);
+                                .MOV(new Operand(RegId.R3), new Operand(RegId.R1))
+                                .POP(RegId.R1)
+                                .SUB(RegId.R1, RegId.R3);
 
                             return builder.getActiveCodeSegmentId ();
                         };
@@ -585,13 +585,13 @@ public class Productions
                         (CNode node, InstructionBuilder builder) -> {
                             CNode.getChild(node, 0)
                                 .execInstrGen(builder);
-                            builder.PUSH (Register.R1);
+                            builder.PUSH (RegId.R1);
                             CNode.getChild(node, 1).execInstrGen(builder);
                             
                             builder
-                                .MOV(new Operand(Register.R3), new Operand(Register.R1))
-                                .POP(Register.R1)
-                                .MUL(Register.R1, Register.R3);
+                                .MOV(new Operand(RegId.R3), new Operand(RegId.R1))
+                                .POP(RegId.R1)
+                                .MUL(RegId.R1, RegId.R3);
 
                             return builder.getActiveCodeSegmentId ();
                         };
@@ -605,13 +605,13 @@ public class Productions
                         (CNode node, InstructionBuilder builder) -> {
                             CNode.getChild(node, 0)
                                 .execInstrGen(builder);
-                            builder.PUSH (Register.R1);
+                            builder.PUSH (RegId.R1);
                             CNode.getChild(node, 1).execInstrGen(builder);
                             
                             builder
-                                .MOV(new Operand(Register.R3), new Operand(Register.R1))
-                                .POP(Register.R1)
-                                .DIV(Register.R1, Register.R3);
+                                .MOV(new Operand(RegId.R3), new Operand(RegId.R1))
+                                .POP(RegId.R1)
+                                .DIV(RegId.R1, RegId.R3);
 
                             return builder.getActiveCodeSegmentId ();
                         };
@@ -631,15 +631,15 @@ public class Productions
                         (CNode node, InstructionBuilder builder) -> {
                             CNode.getChild(node, 0)
                                 .execInstrGen(builder);
-                            builder.PUSH(Register.R1);
+                            builder.PUSH(RegId.R1);
                             CNode.getChild(node, 1).execInstrGen(builder);
 
-                            Operand r1 = new Operand(Register.R1);
+                            Operand r1 = new Operand(RegId.R1);
                             builder
-                                .MOV(new Operand(Register.R3), r1)
-                                .POP(Register.R1)
-                                .DIV(Register.R1, Register.R3)
-                                .MOV(r1, new Operand(Register.R4));
+                                .MOV(new Operand(RegId.R3), r1)
+                                .POP(RegId.R1)
+                                .DIV(RegId.R1, RegId.R3)
+                                .MOV(r1, new Operand(RegId.R4));
 
                             return builder.getActiveCodeSegmentId ();
                         };
@@ -715,12 +715,12 @@ public class Productions
                             // Exponentials are right-associative, so go rh child first
                             CNode.getChild(node, 1)
                                 .execInstrGen(builder);
-                            builder.PUSH (Register.R1);
+                            builder.PUSH (RegId.R1);
                             CNode.getChild(node, 0).execInstrGen(builder);
                             
                             builder
-                                .POP(Register.R3)
-                                .EXP(Register.R1, Register.R3);
+                                .POP(RegId.R3)
+                                .EXP(RegId.R1, RegId.R3);
 
                             return builder.getActiveCodeSegmentId ();
                         };
@@ -805,7 +805,7 @@ public class Productions
                     (CNode node, InstructionBuilder builder) -> {
                         CNode.getChild(node, 0)
                             .execInstrGen(builder);
-                        builder.NEG(Register.R1);
+                        builder.NEG(RegId.R1);
 
                         return builder.getActiveCodeSegmentId ();
                     };
@@ -886,7 +886,7 @@ public class Productions
                 final Integer val = Integer.parseInt(token.getValue());
                 BiFunction<CNode, InstructionBuilder, Integer> injected =
                     (CNode thisNode, InstructionBuilder builder) -> {
-                        builder.MOV (new Operand(Register.R1), new Operand(val));
+                        builder.MOV (new Operand(RegId.R1), new Operand(val));
 
                         return builder.getActiveCodeSegmentId ();
                     };
@@ -900,8 +900,8 @@ public class Productions
 //                   BiFunction<CNode, InstructionBuilder, Integer> injected =
 //                       (CNode thisNode, InstructionBuilder builder) -> {
 //                            builder
-//                                .MOV  (new Operand(Register.R1), new Operand(boolImm))
-//                                .TEST (Register.R1, true);
+//                                .MOV  (new Operand(RegId.R1), new Operand(boolImm))
+//                                .TEST (RegId.R1, true);
 //
 //                            return builder.getActiveCodeSegmentId ();
 //                       };
@@ -942,8 +942,7 @@ public class Productions
 
         BiFunction<CNode, InstructionBuilder, Integer> injected = (CNode thisNode, InstructionBuilder builder) -> {
             SymbolParams symbolDefinition = SymbolTable.getVariableParams(name);
-            builder.MOV(
-                    new Operand(Register.R1),
+            builder.MOV(new Operand(RegId.R1),
                     new Operand(symbolDefinition.getType(), symbolDefinition.getOffset())
                 );
             

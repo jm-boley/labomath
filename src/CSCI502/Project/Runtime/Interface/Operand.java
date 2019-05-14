@@ -5,7 +5,7 @@
  */
 package CSCI502.Project.Runtime.Interface;
 
-import CSCI502.Project.Runtime.Machine.Register;
+import CSCI502.Project.Runtime.Machine.RegId;
 
 /**
  *
@@ -40,7 +40,7 @@ public class Operand
         m_isRef = false;
     }
     
-    public Operand(Register reg)
+    public Operand(RegId reg)
     {
         m_dataType = DataType.Register;
         m_refTargetVal = reg;

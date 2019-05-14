@@ -1,6 +1,6 @@
 package CSCI502.Project;
 
-import CSCI502.Project.Runtime.Interpreter;
+import CSCI502.Project.Runtime.JITCompiler;
 
 /**
  *
@@ -8,7 +8,7 @@ import CSCI502.Project.Runtime.Interpreter;
  */
 public class TextEditorFormMockup extends javax.swing.JInternalFrame {
 
-    private final Interpreter m_runtime;
+    private final JITCompiler m_runtime;
     private String m_filePath;
     private boolean m_changed;
     
@@ -16,7 +16,7 @@ public class TextEditorFormMockup extends javax.swing.JInternalFrame {
      * Creates new form TextEditorForm
      * @param interpreter
      */
-    public TextEditorFormMockup(Interpreter interpreter) {
+    public TextEditorFormMockup(JITCompiler interpreter) {
         m_runtime = interpreter;
         m_filePath = null;
         m_changed = false;

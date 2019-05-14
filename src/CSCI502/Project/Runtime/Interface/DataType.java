@@ -25,6 +25,7 @@ public enum DataType
     Char(1, "char"/*, TypeCode.CHAR*/),     // Character data type
     Bool(2, "bool"/*, TypeCode.BOOL*/),     // 2-byte Boolean data type
     Int4(4, "int4"/*, TypeCode.INT4*/),     // 4-byte integer data type
+    Imm_Byte(1, "imm_byte"),                // Byte immediate (contant literal)
     Imm_Bool(2, "imm_bool"),                // Boolean immediate (constant literal)
     Imm_Int4(4, "imm_int4"),                // Integer immediate (constant literal)
     Imm_Str(-1, "imm_string"),              // String immediate (constant literal) of indeterminate size

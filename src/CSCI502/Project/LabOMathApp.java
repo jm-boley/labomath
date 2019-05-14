@@ -12,7 +12,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import CSCI502.Project.Runtime.Interpreter;
+import CSCI502.Project.Runtime.JITCompiler;
 import java.awt.BorderLayout;
 
 /**
@@ -33,12 +33,12 @@ public class LabOMathApp
         });
     }
     
-    private Interpreter m_runtime;
+    private JITCompiler m_runtime;
     
     LabOMathApp()
     {
         super ("LabOMath v0.1");
-        m_runtime = new Interpreter();
+        m_runtime = new JITCompiler();
     }
 
     LabOMathApp createAndShowGUI()

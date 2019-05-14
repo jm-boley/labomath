@@ -5,10 +5,10 @@ import CSCI502.Project.Runtime.Machine.StaticVariableStorage;
 import CSCI502.Project.Lexical.Analyzer;
 import CSCI502.Project.Lexical.BufferedTokenStream;
 import CSCI502.Project.Lexical.Token;
-import CSCI502.Project.Parsing.CNode;
-import CSCI502.Project.Parsing.InstructionBuilder;
-import CSCI502.Project.Parsing.ParseException;
-import CSCI502.Project.Parsing.Productions;
+import CSCI502.Project.Parser.CNode;
+import CSCI502.Project.Parser.InstructionBuilder;
+import CSCI502.Project.Parser.ParseException;
+import CSCI502.Project.Parser.Productions;
 import CSCI502.Project.Runtime.Machine.VirtualMachine;
 import java.io.IOException;
 import java.util.List;
@@ -21,7 +21,7 @@ import javax.swing.JTextPane;
  *
  * @author Joshua Boley
  */
-public class Interpreter
+public class JITCompiler
 {
     private final Analyzer m_tokenizer;
     private final BufferedTokenStream m_tokenStream;
@@ -30,7 +30,7 @@ public class Interpreter
     // DEBUG
     private JTextArea m_console;
     
-    public Interpreter()
+    public JITCompiler()
     {
         StaticVariableStorage.initialize();
         m_tokenizer = new Analyzer();

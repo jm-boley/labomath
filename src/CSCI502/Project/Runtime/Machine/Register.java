@@ -1,20 +1,47 @@
 package CSCI502.Project.Runtime.Machine;
 
+import CSCI502.Project.Runtime.Interface.DataType;
+
 /**
- * Virtual register identifiers
+ * Virtual register storage structure. Contains both the stored value
+ * and its type.
  * @author Joshua Boley
  */
-public enum Register
+public class Register
 {
-    SP,     // Stack pointer
-    BP,     // Base pointer
-    IP,     // Instruction pointer
-    R1,     // General purpose registers
-    R2,
-    R3,
-    R4,
-    R5,
-    R6,
-    R7,
-    R8;
+    private Object m_value;
+    private DataType m_type;
+    
+    Register()
+    {
+        m_value = null;
+        m_type = DataType.Empty;
+    }
+    
+    Register(Object value, DataType type)
+    {
+        m_value = value;
+        m_type = type;
+    }
+    
+    void set(Object value, DataType type)
+    {
+        m_value = value;
+        m_type = type;
+    }
+    
+    void set(Object value)
+    {
+        m_value = value;
+    }
+    
+    Object getValue()
+    {
+        return m_value;
+    }
+    
+    DataType getType()
+    {
+        return m_type;
+    }
 }

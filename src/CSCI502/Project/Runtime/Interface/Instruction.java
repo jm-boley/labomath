@@ -1,5 +1,6 @@
 package CSCI502.Project.Runtime.Interface;
 
+import CSCI502.Project.Runtime.Machine.Opcodes;
 import java.util.List;
 
 /**
@@ -8,31 +9,17 @@ import java.util.List;
  */
 public class Instruction
 {
-    public enum Opcode
-    {
-        MOVE,
-        ADD,
-        SUBTRACT,
-        MULTIPLY,
-        DIVIDE,
-        EXP,
-        NEGATION,
-        PUSH,
-        POP,
-        PRINT,
-        CLEAR;
-    }
     
-    private final Opcode m_opcode;
+    private final Opcodes m_opcode;
     private final List<Operand> m_operands;
     
-    public Instruction(Opcode opcode, List<Operand> operands)
+    public Instruction(Opcodes opcode, List<Operand> operands)
     {
         m_opcode = opcode;
         m_operands = operands;
     }
     
-    public Opcode getCode()
+    public Opcodes getCode()
     {
         return m_opcode;
     }

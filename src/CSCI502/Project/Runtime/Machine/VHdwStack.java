@@ -6,19 +6,19 @@ import java.util.List;
 
 /**
  * Implements a virtual hardware stack for the machine. This object emulates
- * the hardware stack of the Intel x64 architecture. It is an idealized version
- * as objects stored on the stack do not need to be fragmented to 8-byte
- * chunks and there is no notion of memory alignment. Additionally, stack grows upwards,
- * not downwards as in x64 architecture.
+ * the hardware stack of the Intel x86_64 processor family. It is an idealized version
+ * as large objects stored on the stack do not need to be fragmented to 8-byte
+ * chunks and there are no inherent memory alignment considerations. Stack also grows
+ * upwards, not downwards through its address space.
  * @author Joshua Boley
  */
-class VStack
+class VHdwStack
 {
     private static final int ALLOC_SZ = 10;     // Number of slots to allocate when growing the stack
-    private final List<RegisterContent> m_stack;
-    private final RegisterContent m_stackPointer;
+    private final List<Register> m_stack;
+    private final Register m_stackPointer;
     
-    VStack(RegisterContent basePointer, RegisterContent stackPointer)
+    VHdwStack(Register basePointer, Register stackPointer)
     {
         // Initialize base pointer, stack pointer
         basePointer.set(-1, DataType.Imm_Int4);
@@ -28,7 +28,7 @@ class VStack
         // Initialize stack storage
         m_stack = new ArrayList<>();
         for (int i = 0; i < ALLOC_SZ; ++i)
-            m_stack.add(new RegisterContent(0, DataType.Imm_Int4));
+            m_stack.add(new Register(0, DataType.Imm_Int4));
     }
     
     /**
@@ -37,19 +37,22 @@ class VStack
      * as needed.
      * @param obj Object to store
      */
-    void push(RegisterContent obj)
+    void push(Register obj)
     {
         int stackAddr = (int) m_stackPointer.getValue();
         
         // Grow stack if more storage needed
-        if (stackAddr >= m_stack.size()) {
+        if (stackAddr >= m_stack.size() - 1) {
             for (int i = 0; i < ALLOC_SZ; ++i)
-                m_stack.add(new RegisterContent(0, DataType.Imm_Int4));
+                m_stack.add(new Register(0, DataType.Imm_Int4));
         }
         
         // Increment stack pointer and add object to stack
         m_stackPointer.set(++stackAddr, DataType.Imm_Int4);
-        m_stack.add(stackAddr, obj);
+        if (stackAddr >= m_stack.size()) {
+            boolean breakHere = true;
+        }
+        m_stack.set(stackAddr, obj);
     }
 
     /**
@@ -57,14 +60,14 @@ class VStack
      * stack pointer. Allocated stack size does not change.
      * @return Object referenced by stack pointer
      */
-    RegisterContent pop()
+    Register pop()
     {
         int stackAddr = (int) m_stackPointer.getValue();
         if (stackAddr < 0)
             throw new RuntimeException("Stack underflow");
 
         // Get object from stack and decrement stack pointer
-        RegisterContent popped = m_stack.get(stackAddr);
+        Register popped = m_stack.get(stackAddr);
         m_stackPointer.set(stackAddr - 1, DataType.Imm_Int4);
         
         return popped;

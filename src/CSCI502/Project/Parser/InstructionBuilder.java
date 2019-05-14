@@ -1,10 +1,11 @@
-package CSCI502.Project.Parsing;
+package CSCI502.Project.Parser;
 
 import CSCI502.Project.Runtime.Interface.DataType;
 import CSCI502.Project.Runtime.Interface.Instruction;
 import CSCI502.Project.Runtime.Interface.Operand;
 import CSCI502.Project.Runtime.Interface.SymbolTable;
-import CSCI502.Project.Runtime.Machine.Register;
+import CSCI502.Project.Runtime.Machine.Opcodes;
+import CSCI502.Project.Runtime.Machine.RegId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,102 +91,100 @@ public class InstructionBuilder
             List<Operand> operands = new ArrayList<>();
             operands.add(dst);
             operands.add(src);
-            Instruction instr = new Instruction(Instruction.Opcode.MOVE, operands);
+            Instruction instr = new Instruction(Opcodes.MOV, operands);
             m_codeSegments
                 .get(m_activeSegment)
                 .add(instr);
             return this;
         }
         
-	public InstructionBuilder ADD(Register op1, Register op2)
+	public InstructionBuilder ADD(RegId op1, RegId op2)
         {
             List<Operand> operands = new ArrayList<>();
             operands.add(new Operand(op1));
             operands.add(new Operand(op2));
-            Instruction instr = new Instruction(Instruction.Opcode.ADD, operands);
+            Instruction instr = new Instruction(Opcodes.ADD, operands);
             m_codeSegments
                 .get(m_activeSegment)
                 .add(instr);
             return this;
         }
 
-	public InstructionBuilder SUB(Register op1, Register op2)
+	public InstructionBuilder SUB(RegId op1, RegId op2)
         {
             List<Operand> operands = new ArrayList<>();
             operands.add(new Operand(op1));
             operands.add(new Operand(op2));
-            Instruction instr = new Instruction(Instruction.Opcode.SUBTRACT, operands);
+            Instruction instr = new Instruction(Opcodes.SUB, operands);
             m_codeSegments
                 .get(m_activeSegment)
                 .add(instr);
             return this;
         }
 
-	public InstructionBuilder MUL(Register op1, Register op2)
+	public InstructionBuilder MUL(RegId op1, RegId op2)
         {
             List<Operand> operands = new ArrayList<>();
             operands.add(new Operand(op1));
             operands.add(new Operand(op2));
-            Instruction instr = new Instruction(Instruction.Opcode.MULTIPLY, operands);
+            Instruction instr = new Instruction(Opcodes.MULT, operands);
             m_codeSegments
                 .get(m_activeSegment)
                 .add(instr);
             return this;
         }
         
-	public InstructionBuilder DIV(Register op1, Register op2)
+	public InstructionBuilder DIV(RegId op1, RegId op2)
         {
             List<Operand> operands = new ArrayList<>();
             operands.add(new Operand(op1));
             operands.add(new Operand(op2));
-            Instruction instr = new Instruction(Instruction.Opcode.DIVIDE, operands);
+            Instruction instr = new Instruction(Opcodes.DIV, operands);
             m_codeSegments
                 .get(m_activeSegment)
                 .add(instr);
             return this;
         }
         
-        public InstructionBuilder EXP(Register dst, Register src)
+        public InstructionBuilder EXP(RegId dst, RegId src)
         {
             List<Operand> operands = new ArrayList<>();
             operands.add(new Operand(dst));
             operands.add(new Operand(src));
             m_codeSegments
                 .get(m_activeSegment)
-                .add(
-                    new Instruction(Instruction.Opcode.EXP, operands)
+                .add(new Instruction(Opcodes.EXP, operands)
                 );
             return this;
         }
 
-	public InstructionBuilder NEG(Register dst)
+	public InstructionBuilder NEG(RegId dst)
         {
             List<Operand> operands = new ArrayList<>();
             operands.add(new Operand(dst));
             m_codeSegments
                 .get(m_activeSegment)
-                .add(
-                    new Instruction(Instruction.Opcode.NEGATION, operands)
+                .add(new Instruction(Opcodes.NEG, operands)
                 );
             return this;
         }
 
-	public InstructionBuilder PUSH(Register src)
+	public InstructionBuilder PUSH(RegId src)
         {
             List<Operand> operands = new ArrayList<>();
             operands.add(new Operand(src));
-            Instruction instr = new Instruction(Instruction.Opcode.PUSH, operands);
+            Instruction instr = new Instruction(Opcodes.PUSH, operands);
             m_codeSegments
                 .get(m_activeSegment)
                 .add(instr);
             return this;
         }
         
-	public InstructionBuilder POP(Register dst)
+	public InstructionBuilder POP(RegId dst)
         {
             List<Operand> operands = new ArrayList<>();
             operands.add(new Operand(dst));
-            Instruction instr = new Instruction(Instruction.Opcode.POP, operands);
+            Instruction instr = new Instruction(Opcodes.POP, operands);
             m_codeSegments
                 .get(m_activeSegment)
                 .add(instr);
@@ -198,7 +197,7 @@ public class InstructionBuilder
         {
             List<Operand> operands = new ArrayList<>();
             operands.add(src);
-            Instruction instr = new Instruction(Instruction.Opcode.PRINT, operands);
+            Instruction instr = new Instruction(Opcodes.PRNT, operands);
             m_codeSegments
                 .get(m_activeSegment)
                 .add(instr);
@@ -209,7 +208,7 @@ public class InstructionBuilder
         {
             m_codeSegments
                 .get(m_activeSegment)
-                .add(new Instruction(Instruction.Opcode.CLEAR, null));
+                .add(new Instruction(Opcodes.CLR, null));
             return this;
         }
         

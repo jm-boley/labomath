@@ -1,6 +1,6 @@
 package CSCI502.Project;
 
-import CSCI502.Project.Runtime.Interpreter;
+import CSCI502.Project.Runtime.JITCompiler;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -34,7 +34,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
  */
 public class TextEditorForm extends javax.swing.JInternalFrame {
 
-    private final Interpreter m_runtime;
+    private final JITCompiler m_runtime;
     private String m_filePath;
     private boolean m_changed;
     
@@ -42,7 +42,7 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
      * Creates new form TextEditorForm
      * @param interpreter
      */
-    public TextEditorForm(Interpreter interpreter) {
+    public TextEditorForm(JITCompiler interpreter) {
         m_runtime = interpreter;
         m_filePath = null;
         m_changed = false;

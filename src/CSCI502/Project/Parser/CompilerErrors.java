@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package CSCI502.Project.Parsing;
+package CSCI502.Project.Parser;
 
 import CSCI502.Project.Lexical.Token;
 
