@@ -37,7 +37,6 @@ public class Analyzer
     /**
      * Takes a file path and attempts to open it for parsing.
      * @param fpath Path to script file
-     * @return Token stream
      * @throws java.io.IOException 
      */
     public void init (String fpath) throws IOException
@@ -114,7 +113,7 @@ public class Analyzer
 
             // Advance the state machine and add character to token string if not LF/CR or not leading
             // whitespace (where tokenization state code will be NONE)
-            m_stateMachine.advance (in);
+            m_stateMachine.advance(in);
             rc = m_stateMachine.getCurrentTSCode();
             if (rc != TSCode.NONE && in != '\n' && in != '\r')
                 tokenCharStream.append(in);
@@ -124,7 +123,7 @@ public class Analyzer
                 if (rc == TSCode.UNKNOWN) {
                     // Parsing error, back up in the machine's code history until the last previous valid
                     // tokenization state code is found, also backing up through the file input stream
-                    List<TSCode> codeHistory = m_stateMachine.getTSCodeChain ();
+                    List<TSCode> codeHistory = m_stateMachine.getTSCodeChain();
                     StringBuilder tokenCharStreamBackup = new StringBuilder(tokenCharStream);
 
                     // Immediately back up one place in input stream
@@ -176,7 +175,7 @@ public class Analyzer
                     // break and return the token.
                     if (rc == TSCode.COMMENT) {
                         // Clear token character stream contents
-                        tokenCharStream.delete(0, tokenCharStream.length() - 1);
+                        tokenCharStream.delete(0, tokenCharStream.length());
                         dropToken = true;
                     }
                     else {
@@ -201,7 +200,6 @@ public class Analyzer
                 startColNo = currColNo;
                 if (dropToken) {
                     dropToken = false;
-                    continue;
                 }
                 else if (returnToken) {
                     ++seqno;

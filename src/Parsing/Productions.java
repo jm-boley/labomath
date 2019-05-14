@@ -29,7 +29,8 @@ abstract class StatusFlags
 }
 
 /**
- * Recursive descent parser production rules implementation
+ * Grammar rules (productions). Implements top-down, recursive descent language
+ * parsing.
  * @author Joshua Boley
  */
 abstract public class Productions
