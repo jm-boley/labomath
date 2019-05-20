@@ -1,5 +1,6 @@
 package GUI;
 
+import Runtime.IO.InputChannel;
 import Runtime.JIT.Compiler;
 import java.awt.Color;
 import java.awt.Font;
@@ -34,19 +35,25 @@ import javax.swing.LayoutStyle.ComponentPlacement;
  */
 public class TextEditorForm extends javax.swing.JInternalFrame {
 
-    private final Compiler m_runtime;
+    private final Compiler m_jit;
+    private final InputChannel m_editorIn;
     private String m_filePath;
     private boolean m_changed;
     
     /**
      * Creates new form TextEditorForm
-     * @param interpreter
+     * @param jitEnv
      */
-    public TextEditorForm(Compiler interpreter) {
-        m_runtime = interpreter;
+    public TextEditorForm(Compiler jitEnv) {
+        super();
+        initComponents();
+        
         m_filePath = null;
         m_changed = false;
-        initComponents();
+        
+        // Initialize JIT environment
+        m_jit = jitEnv;
+        m_editorIn = m_jit.initInputSource(tpTextEditor);
     }
 
     /**
@@ -314,7 +321,8 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
     private void runBttnActionPerformed(ActionEvent evt)
     {
         try {
-            m_runtime.run(tpTextEditor);
+            m_editorIn.inputReady();
+            m_jit.run();
         } catch (IOException ex) {
             Logger.getLogger(TextEditorForm.class.getName()).log(Level.SEVERE, null, ex);
         }

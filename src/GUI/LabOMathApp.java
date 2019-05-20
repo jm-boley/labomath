@@ -33,7 +33,7 @@ public class LabOMathApp
         });
     }
     
-    private Compiler m_runtime;
+    private final Compiler m_runtime;
     
     LabOMathApp()
     {

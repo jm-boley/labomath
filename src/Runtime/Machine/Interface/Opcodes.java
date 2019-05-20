@@ -1,4 +1,4 @@
-package Runtime.Machine;
+package Runtime.Machine.Interface;
 
 /**
  * Virtual CPU operation codes.

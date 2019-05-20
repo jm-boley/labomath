@@ -1,0 +1,17 @@
+# Clear console
+clear();
+
+# Print hello message, initialize variables and print values
+print ("Starting script...\n");
+a <- 1;
+b <- 3;
+print ("a=", a, "\nb=", b, "\n");
+
+# Do some math and show result
+c <- 4*(b^2 + 3*a);
+print ("c=", c, "\n");
+
+# Do some more math on c and show new result
+c <- c*2 / 4;
+print ("Recalculating c: c=", c, "\n");
+print ("\n");

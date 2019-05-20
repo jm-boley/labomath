@@ -1,17 +1,19 @@
 package Runtime.Machine;
 
-import Runtime.API.DataType;
-import Runtime.API.Instruction;
-import Runtime.API.Operand;
+import Runtime.Machine.Interface.RegId;
+import Runtime.Machine.Interface.Opcodes;
+import Runtime.JIT.API.DataType;
+import Runtime.JIT.API.Instruction;
+import Runtime.JIT.API.Operand;
+import Runtime.IO.OutputChannel;
 import java.util.EnumMap;
 import java.util.List;
-import javax.swing.JTextArea;
 
 /**
  * Virtual machine on which instructions are executed
  * @author Joshua Boley
  */
-public class VirtualMachine
+public class VirtualCPU
 {
     enum Flag {
         ZF,     // Zero flag
@@ -21,20 +23,20 @@ public class VirtualMachine
 
     private static final boolean DEBUG = true;
 
-    private EnumMap<Flag, Boolean> m_eflags;
+    private final EnumMap<Flag, Boolean> m_eflags;
     private final EnumMap<RegId, Register> m_registers;
     private final VHdwStack m_vstack;
     private List<Instruction> m_instructionCache;
-    private JTextArea m_console;
+    private OutputChannel m_outChannel;
     
-    public VirtualMachine()
+    public VirtualCPU()
     {
         m_eflags = new EnumMap<>(Flag.class);
         m_eflags.put(Flag.ZF, false);
         m_eflags.put(Flag.SF, false);
         m_eflags.put(Flag.OF, false);
         m_registers = new EnumMap<>(RegId.class);
-        m_console = null;
+        m_outChannel = null;
         
         // Initialize registers
         for (RegId reg : RegId.values())
@@ -48,9 +50,9 @@ public class VirtualMachine
         m_vstack = new VHdwStack(m_registers.get(RegId.BP), m_registers.get(RegId.SP));
     }
     
-    public void initializeIO(JTextArea console)
+    public void initializeIO(OutputChannel out)
     {
-        m_console = console;
+        m_outChannel = out;
     }
     
     public void load(List<Instruction> instructions)
@@ -115,7 +117,7 @@ public class VirtualMachine
                                     RegId dstRegId = (RegId) dst.getEnclosed();
                                     Register dstReg = m_registers.get(dstRegId);
                                     dstReg.set(
-                                        StaticVariableStorage.retrieve(
+                                        StaticMemory.retrieve(
                                             src.getType(),
                                             (int) src.getEnclosed()
                                         ),
@@ -140,7 +142,7 @@ public class VirtualMachine
                                         if (srcReg.getType() != dst.getType())
                                             throw new UnsupportedOperationException("MOV: Type mismatch, conversion not supported");
                                     }
-                                    StaticVariableStorage.assign(srcReg.getValue(), dst.getType(), (int) dst.getEnclosed());
+                                    StaticMemory.assign(srcReg.getValue(), dst.getType(), (int) dst.getEnclosed());
                                     break;
                                 }
                                 case Imm_Int4:
@@ -838,13 +840,13 @@ public class VirtualMachine
                 case PRNT:
                 {
                     Operand src = operands.get(0);
-                    sendToConsole((RegId) src.getEnclosed());
+                    sendToOutChannel((RegId) src.getEnclosed());
                     break;
                 }
                 case CLR:
                 {
                     // Clears console, also sets accumulator to 0
-                    m_console.setText("");
+                    m_outChannel.sendClear();
                     Register accum = m_registers.get(RegId.R1);
                     accum.set("", DataType.Imm_Str);
                     break;
@@ -877,15 +879,21 @@ public class VirtualMachine
         }
     }
     
-    private void sendToConsole(RegId src)
+    private void sendToOutChannel(RegId src)
     {
         Register srcReg = m_registers.get(src);
         switch (srcReg.getType()) {
             case Int4:
-                m_console.append(Integer.toString((int) srcReg.getValue()));
+                m_outChannel.send(
+                    OutputChannel.Type.StdOut,
+                    Integer.toString((int) srcReg.getValue())
+                );
                 break;
             case Imm_Str:
-                m_console.append((String) srcReg.getValue());
+                m_outChannel.send(
+                    OutputChannel.Type.StdOut,
+                    (String) srcReg.getValue()
+                );
                 break;
             default:
                 throw new UnsupportedOperationException("PRINT: Not supported for type " + srcReg.getType().toString());

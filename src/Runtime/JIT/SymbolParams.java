@@ -5,7 +5,7 @@
  */
 package Runtime.JIT;
 
-import Runtime.API.DataType;
+import Runtime.JIT.API.DataType;
 
 /**
  * Symbol parameters returned from the symbol table. Immutable type.

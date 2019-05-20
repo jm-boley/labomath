@@ -1,7 +1,7 @@
 package Runtime.JIT;
 
-import Runtime.API.DataType;
-import Runtime.Machine.StaticVariableStorage;
+import Runtime.JIT.API.DataType;
+import Runtime.Machine.StaticMemory;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,7 +78,7 @@ public class SymbolTable
     
     private void createSymbolEntry(String name, DataType type)
     {
-        int offset = StaticVariableStorage.allocate(type);
+        int offset = StaticMemory.allocate(type);
         m_catalog.put(name, new Entry(name, type, offset));
     }
     

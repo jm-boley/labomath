@@ -1,7 +1,7 @@
 package Parsing;
 
-import Runtime.API.InstructionBuilder;
-import Runtime.API.DataType;
+import Runtime.JIT.API.InstructionBuilder;
+import Runtime.JIT.API.DataType;
 import Lexical.Token;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,11 +1,11 @@
-package Runtime.API;
+package Runtime.JIT.API;
 
-import Runtime.API.DataType;
-import Runtime.API.Instruction;
-import Runtime.API.Operand;
+import Runtime.JIT.API.DataType;
+import Runtime.JIT.API.Instruction;
+import Runtime.JIT.API.Operand;
 import Runtime.JIT.SymbolTable;
-import Runtime.Machine.Opcodes;
-import Runtime.Machine.RegId;
+import Runtime.Machine.Interface.Opcodes;
+import Runtime.Machine.Interface.RegId;
 import java.util.ArrayList;
 import java.util.List;
 

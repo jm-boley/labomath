@@ -1,6 +1,6 @@
 package Runtime.Machine;
 
-import Runtime.API.DataType;
+import Runtime.JIT.API.DataType;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,9 +13,9 @@ import java.util.function.Function;
  * Encapsulates variable storage array
  * @author Joshua Boley
  */
-public class StaticVariableStorage
+public class StaticMemory
 {
-    private static StaticVariableStorage storage = null;
+    private static StaticMemory storage = null;
     
     /**
      * Initializes variable storage. Must be called before variable storage can
@@ -23,7 +23,7 @@ public class StaticVariableStorage
      */
     public static void initialize()
     {
-        storage = new StaticVariableStorage();
+        storage = new StaticMemory();
     }
     
     /**
@@ -57,7 +57,7 @@ public class StaticVariableStorage
     private int m_nextAddr;
     private final List<Byte> m_varstore;
     
-    private StaticVariableStorage()
+    private StaticMemory()
     {
         m_codecMap = new HashMap<>();
         m_nextAddr = 0;

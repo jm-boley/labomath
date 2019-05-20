@@ -1,13 +1,9 @@
 package Lexical;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.util.List;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
+import Runtime.IO.InputChannel;
 
 /**
  * Lexical analyzer. Streams characters from an input file and attempts to generate
@@ -26,6 +22,7 @@ public class Analyzer
     
     public Analyzer ()
     {
+        m_ifs = null;
         m_stateMachine = new StateMachine();
         startLineNo = 0;
         startColNo = 0;
@@ -34,44 +31,11 @@ public class Analyzer
         seqno = 0;
     }
     
-    /**
-     * Takes a file path and attempts to open it for parsing.
-     * @param fpath Path to script file
-     * @throws java.io.IOException 
-     */
-    public void init (String fpath) throws IOException
+    public void init(InputChannel<?> inChannel) throws IOException
     {
-        m_ifs = new PushbackInputStream(new FileInputStream(fpath));
-        startLineNo = 0;
-        startColNo = 0;
-        currLineNo = 0;
-        currColNo = 0;
-        seqno = 0;
-    }
-    
-    public void init (JTextPane txtPane)
-    {
-        init_common(txtPane.getText());
-    }
-    
-    /**
-     * Retrieves text from the command line and prepares for parsing.
-     * @param tfCommandLine Command line text field.
-     */
-    public void init (JTextField tfCommandLine)
-    {
-        StringBuilder command = new StringBuilder();
-        command.append(tfCommandLine.getText());
-        command.append(";");
-        init_common(command.toString());
-    }
-    
-    private void init_common (String input)
-    {
-        InputStream in = new ByteArrayInputStream(
-            input.getBytes()
-        );
-        m_ifs = new PushbackInputStream(in);
+        if (m_ifs != null)
+            m_ifs.close();
+        m_ifs = new PushbackInputStream(inChannel.getInputStream());
         startLineNo = 0;
         startColNo = 0;
         currLineNo = 0;
@@ -134,15 +98,15 @@ public class Analyzer
                     for (int i = codeHistory.size() - 1; i >= 0; --i) {
                         // Remove last char in token character stream and move back one position in file
                         // input stream
-                        int last = tokenCharStream.length() - 1;
-                        m_ifs.unread(tokenCharStream.charAt(last));
-                        tokenCharStream.deleteCharAt(last);
+                        int tail = tokenCharStream.length() - 1;
+                        m_ifs.unread(tokenCharStream.charAt(tail));
+                        tokenCharStream.deleteCharAt(tail);
                         --currColNo;
-                        --last;
+                        --tail;
                         
                         // Break if a valid token code is found (note: TSCode.NONE should never be
                         // encountered; finding one indicates a state transition design error)
-                        if ((rc = codeHistory.get(last)) != TSCode.UNKNOWN)
+                        if ((rc = codeHistory.get(tail)) != TSCode.UNKNOWN)
                             break;
                     }
 

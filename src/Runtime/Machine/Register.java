@@ -1,6 +1,6 @@
 package Runtime.Machine;
 
-import Runtime.API.DataType;
+import Runtime.JIT.API.DataType;
 
 /**
  * Virtual register storage structure. Contains both the stored value

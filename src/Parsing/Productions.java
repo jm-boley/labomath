@@ -6,12 +6,12 @@
 package Parsing;
 
 import Runtime.JIT.CompilerErrors;
-import Runtime.API.InstructionBuilder;
-import Runtime.API.DataType;
-import Runtime.API.Operand;
+import Runtime.JIT.API.InstructionBuilder;
+import Runtime.JIT.API.DataType;
+import Runtime.JIT.API.Operand;
 import Runtime.JIT.SymbolParams;
 import Runtime.JIT.SymbolTable;
-import Runtime.Machine.RegId;
+import Runtime.Machine.Interface.RegId;
 import Lexical.BufferedTokenStream;
 import Lexical.TSCode;
 import Lexical.Token;

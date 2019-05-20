@@ -1,6 +1,6 @@
 package Runtime.Machine;
 
-import Runtime.API.DataType;
+import Runtime.JIT.API.DataType;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -5,6 +5,7 @@
  */
 package GUI;
 
+import Runtime.IO.InputChannel;
 import Runtime.JIT.Compiler;
 import java.awt.Color;
 import java.awt.Font;
@@ -37,13 +38,19 @@ class CmdLinePanel
     private JTextField tfConsoleIn;
     private Label lblPrompt;
     
-    private final Compiler interpreter;
+    private final Compiler m_jit;
+    private final InputChannel m_cmdlineIn;
 
-    public CmdLinePanel(Compiler core)
+    public CmdLinePanel(final Compiler core)
     {
         super();
-        this.interpreter = core;
         initComponents();
+        
+        // Initialize JIT environment
+        this.m_jit = core;
+        m_cmdlineIn = m_jit.initInputSource(tfConsoleIn);
+        m_jit.initConsoleOut(txtConsoleOut);
+
     }
     
     private void initComponents()
@@ -107,9 +114,6 @@ class CmdLinePanel
         );
 
         lblPrompt.getAccessibleContext().setAccessibleName("lblPrompt");
-        
-        // Initialize interpreter
-        this.interpreter.initConsoleOut(txtConsoleOut);
     }
     
     @Override
@@ -123,7 +127,8 @@ class CmdLinePanel
             String cmd = tfConsoleIn.getText();
             txtConsoleOut.append("> " + cmd + "\n");
             try {
-                interpreter.run(tfConsoleIn);
+                m_cmdlineIn.inputReady();
+                m_jit.run();
             }
             catch (IOException ex) {
                 Logger.getLogger(CmdLinePanel.class.getName())

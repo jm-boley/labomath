@@ -1,6 +1,6 @@
-package Runtime.API;
+package Runtime.JIT.API;
 
-import Runtime.Machine.Opcodes;
+import Runtime.Machine.Interface.Opcodes;
 import java.util.List;
 
 /**
