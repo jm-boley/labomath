@@ -19,8 +19,19 @@ import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
 /**
- * Grammar rules (productions). Implements top-down, recursive descent language
- * parsing.
+ * Grammar rules (productions). Provides a simple top-down, recursive-descent
+ * language parsing implementation. There are two entry methods, commandLine()
+ * and statementBlock(), as described below:
+ * 
+ *  commandLine() - Used to parse user commands retrieved from the console. This
+ *                  specialized production prevents the use of reserved keywords
+ *                  such as while, if/else, print, etc., that should not be used
+ *                  outside of a full script.
+ *  statementBlock() - General purpose top-level script-parsing rule. It is able
+ *                     to full scripts from any source (local editor, file, etc).
+ * 
+ * Both methods use the BufferedTokenStream class to retrieve input from source
+ * script or the command line, respectively.
  * @author Joshua Boley
  */
 abstract public class Productions
@@ -230,7 +241,7 @@ abstract public class Productions
         return statementBlockRoot;
     }
     
-    public static CNode statement(BufferedTokenStream tokenStream) throws ParseException
+    private static CNode statement(BufferedTokenStream tokenStream) throws ParseException
     {
         // Skip as many comment tokens as required, until code found or end of token stream reached
         Token nextToken;
@@ -276,7 +287,7 @@ abstract public class Productions
         return statementNode;
     }
     
-    static CNode assignment(BufferedTokenStream tokenStream) throws ParseException
+    private static CNode assignment(BufferedTokenStream tokenStream) throws ParseException
     {
         // Get lvalue node
         Token begin = tokenStream.read();   // Keep reference to start position in the token stream in case parsing fails
@@ -335,7 +346,7 @@ abstract public class Productions
         return assignNode;
     }
     
-    static CNode print(BufferedTokenStream tokenStream) throws ParseException
+    private static CNode print(BufferedTokenStream tokenStream) throws ParseException
     {
         Token printToken = tokenStream.read();
         abortIfEOS(tokenStream);
@@ -383,9 +394,9 @@ abstract public class Productions
             for (int i = 0; i < CNode.numChildren (thisNode); ++i) {
                 // Execute child node code generation
                 CNode rvalNode = CNode.getChild (thisNode, i);
-                rvalNode.execInstrGen (builder);
+                rvalNode.execInstrGen(builder);
                 builder
-                    .PRINT (new Operand(RegId.R1));
+                    .PRINT(new Operand(RegId.R1));
             }
 
             return builder.getActiveCodeSegmentId ();
@@ -401,7 +412,7 @@ abstract public class Productions
         return printNode;
     }
     
-    static CNode clear(BufferedTokenStream tokenStream) throws ParseException
+    private static CNode clear(BufferedTokenStream tokenStream) throws ParseException
     {
         Token printToken = tokenStream.read();
         
@@ -417,7 +428,7 @@ abstract public class Productions
         return new CNode(printToken, injected);
     }
     
-    static CNode lvalue (BufferedTokenStream tokenStream) throws ParseException
+    private static CNode lvalue (BufferedTokenStream tokenStream) throws ParseException
     {
         Token varToken = tokenStream.read();
         if (varToken.getId() != TSCode.IDENT || isReserved(varToken.getValue()))
@@ -442,7 +453,7 @@ abstract public class Productions
         return new CNode(varToken, injected, DataType.Int4);
     }
     
-    static CNode rvalue (BufferedTokenStream tokenStream) throws ParseException
+    private static CNode rvalue (BufferedTokenStream tokenStream) throws ParseException
     {
         // Try to parse string literal expression
         CNode expressionNode;
@@ -457,7 +468,7 @@ abstract public class Productions
         return null;
     }
     
-    static CNode stringLiteralRef (BufferedTokenStream tokenStream) throws ParseException
+    private static CNode stringLiteralRef (BufferedTokenStream tokenStream) throws ParseException
     {
         Token strToken = tokenStream.read();
         // Return null if this is not a string literal
@@ -479,7 +490,7 @@ abstract public class Productions
         return new CNode(strToken, injected, DataType.Imm_Str);
     }
 
-    static CNode addSub (BufferedTokenStream tokenStream) throws ParseException
+    private static CNode addSub (BufferedTokenStream tokenStream) throws ParseException
     {
         // Return nullptr immediately if there are no tokens to process
         if (tokenStream.atEOS())
@@ -587,7 +598,7 @@ abstract public class Productions
         return currentroot;
     }
     
-    static CNode multDivMod (BufferedTokenStream tokenStream) throws ParseException
+    private static CNode multDivMod (BufferedTokenStream tokenStream) throws ParseException
     {
         // Return nullptr immediately if there are no tokens to process
         if (tokenStream.atEOS())
@@ -723,7 +734,7 @@ abstract public class Productions
         return currentroot;
     }
     
-    static CNode power (BufferedTokenStream tokenStream) throws ParseException
+    private static CNode power (BufferedTokenStream tokenStream) throws ParseException
     {
         if (tokenStream.atEOS())
             return null;
@@ -804,7 +815,7 @@ abstract public class Productions
         return current;
     }
     
-    static CNode negatable (BufferedTokenStream tokenStream) throws ParseException
+    private static CNode negatable (BufferedTokenStream tokenStream) throws ParseException
     {
         // Return nullptr immediately if there are no tokens to process
         if (tokenStream.atEOS())
@@ -903,7 +914,7 @@ abstract public class Productions
         return currentroot;
     }
     
-    static CNode varnumeric (BufferedTokenStream tokenStream) throws ParseException
+    private static CNode varnumeric (BufferedTokenStream tokenStream) throws ParseException
     {
         Token token = tokenStream.read();
         abortIfEOS(tokenStream);
@@ -946,7 +957,7 @@ abstract public class Productions
         return varNumericNode;
     }
     
-    static CNode variableDeref(BufferedTokenStream tokenStream) throws ParseException
+    private static CNode variableDeref(BufferedTokenStream tokenStream) throws ParseException
     {
         Token varToken = tokenStream.read();
         if (varToken.getId() != TSCode.IDENT) {
