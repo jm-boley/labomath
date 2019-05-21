@@ -26,7 +26,7 @@ import javax.swing.JTextField;
  * Command line interface panel
  * @author Joshua Boley
  */
-class CmdLinePanel
+public class CmdLinePanel
         extends JPanel
         implements KeyListener, FocusListener
 {
@@ -34,10 +34,15 @@ class CmdLinePanel
     private JTextArea txtConsoleOut;
     private JTextField tfConsoleIn;
     private Label lblPrompt;
+    public static final Color STD_FONT_CLR;
     
     private final VirtualMachine m_jit;
     private final InputChannel m_cmdlineIn;
 
+    static {
+        STD_FONT_CLR = new Color(245, 245, 245);
+    }
+    
     public CmdLinePanel(final VirtualMachine core)
     {
         super();
@@ -63,7 +68,7 @@ class CmdLinePanel
         tfConsoleIn.setBorder(null);
         tfConsoleIn.setFont(defaultFont);
         tfConsoleIn.setBackground(Color.black);
-        tfConsoleIn.setForeground(new Color(245, 245, 245));
+        tfConsoleIn.setForeground(STD_FONT_CLR);
         tfConsoleIn.addKeyListener(this);
 
         txtConsoleOut.setColumns(20);
@@ -74,7 +79,7 @@ class CmdLinePanel
         txtConsoleOut.setEditable(false);
         txtConsoleOut.setFont(defaultFont);
         txtConsoleOut.setBackground(Color.black);
-        txtConsoleOut.setForeground(new Color(245, 245, 245));
+        txtConsoleOut.setForeground(STD_FONT_CLR);
         txtConsoleOut.addFocusListener(this);
         
         cmdLinePane.setBorder(null);
@@ -82,7 +87,7 @@ class CmdLinePanel
 
         lblPrompt.setFont(defaultFont);
         lblPrompt.setBackground(Color.black);
-        lblPrompt.setForeground(new Color(245, 245, 245));
+        lblPrompt.setForeground(STD_FONT_CLR);
         lblPrompt.setText(">");
 
         GroupLayout layout = new GroupLayout(this);
@@ -124,6 +129,7 @@ class CmdLinePanel
             txtConsoleOut.append("> " + cmd + "\n");
             m_cmdlineIn.inputReady();
             m_jit.run();
+            txtConsoleOut.setForeground(STD_FONT_CLR);
             tfConsoleIn.setText("");
         }
     }

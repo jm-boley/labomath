@@ -5,6 +5,7 @@ import Runtime.IO.ConsoleOutputChannel;
 import Runtime.IO.EditorInputChannel;
 import Runtime.IO.InputChannel;
 import Runtime.IO.OutputChannel;
+import Runtime.IO.OutputChannel.Type;
 import Runtime.IONode.SinkType;
 import Runtime.IONode.SourceType;
 import Runtime.JIT.API.Instruction;
@@ -194,15 +195,15 @@ public class VirtualMachine
                 return;
             
             // Get corresponding output channels (local/remote console, local/remote GUI update)
-            OutputChannel consoleOut = null,
-                          guiOut = null;
+            ConsoleOutputChannel consoleOut = null;
+            OutputChannel guiOut = null;
             for (IONode channel : clientChannels.get(IOType.out)) {
                 for (OutputChannel candidate : m_outputSinks) {
                     if (candidate.getChannelMapping() == channel.getCMID()) {
                         switch (channel.getTarget()) {
                             case console:
                             case remote_console:
-                                consoleOut = candidate;
+                                consoleOut = (ConsoleOutputChannel) candidate;
                                 break;
                             case gui:
                             case remote_gui:
@@ -216,6 +217,7 @@ public class VirtualMachine
             
             // Initialize compiler and VCPU
             m_compiler.setInputChannel(in);
+            m_compiler.setOutputChannel(consoleOut);
             boolean isCommand = false;
             switch (srcNode.getSource()) {
                 case console:
@@ -225,13 +227,14 @@ public class VirtualMachine
             }
             
             // Compile program from source
-            List<Instruction> program = null;
+            List<Instruction> program;
             try {
                 program = m_compiler.run(isCommand);
             } catch (IOException ex) {
                 Logger.getLogger(VirtualMachine.class.getName()).log(Level.SEVERE, null, ex);
-                throw new RuntimeException(ex);
-            }
+                consoleOut.send(Type.StdErr, ex.getMessage());
+                return;
+            }            
             if (program == null)
                 return;
             

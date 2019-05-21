@@ -1,23 +1,18 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Parsing;
 
-import Runtime.JIT.CompilerErrors;
+import Lexical.BufferedTokenStream;
+import Lexical.Token;
+import Lexical.TSCode;
 import Runtime.JIT.API.InstructionBuilder;
 import Runtime.JIT.API.DataType;
 import Runtime.JIT.API.Operand;
-import Runtime.JIT.SymbolParams;
-import Runtime.JIT.SymbolTable;
-import Runtime.Machine.Interface.RegId;
-import Lexical.BufferedTokenStream;
-import Lexical.TSCode;
-import Lexical.Token;
+import Runtime.JIT.CompilerErrors;
 import Runtime.JIT.CompilerErrors.ErrMessage;
 import Runtime.JIT.CompilerErrors.ErrType;
 import Runtime.JIT.CompilerErrors.Level;
+import Runtime.JIT.SymbolParams;
+import Runtime.JIT.SymbolTable;
+import Runtime.Machine.Interface.RegId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -102,7 +97,7 @@ abstract public class Productions
                 Token.NONE, Level.ERROR, ErrType.COMP_U,
                 "Unexpected end of file/line while processing instruction(s)."
             );
-            throw new RuntimeException(errMessage);
+            throw new ParseException(errMessage, null);
         }
     }
     
@@ -135,41 +130,56 @@ abstract public class Productions
     /**
      * Production rule for the command line. Throws a ParseException if script commands such as print or
      * logic control structure keywords are found.
-     * @param tokenStream
-     * @return
-     * @throws ParseException 
+     * @param tokenStream Token stream
+     * @param observer Parse status observer
+     * @return Code generation tree 
      */
-    public static CNode commandLine (BufferedTokenStream tokenStream) throws ParseException
+    public static CNode commandLine (BufferedTokenStream tokenStream, ParseObserver observer)
     {
         if (tokenStream.atEOS())
             return null;
         
         // Filter out script functions; command line should be used only for math and variable assignment
-//        Token begin = tokenStream.read(),
-//              token = begin;
-//        tokenStream.mark(begin);
-//        do {
-//            if (token.getId() == TSCode.IDENT && isReserved(token.getValue())) {
-//                String errMessage = CompilerErrors.formatErrorMessage(
-//                    token, Level.ERROR, ErrType.ILLEGAL_EXPR,
-//                    "Script functions and logic unavailable on the command line"
-//                );
-//                throw new ParseException(errMessage, token);
-//            }
-//            token = tokenStream.read();
-//        }
-//        while (!tokenStream.atEOS());
-//        tokenStream.rewind(begin);
-//        tokenStream.unmark();
-        return Productions.statement(tokenStream);
+        Token begin = tokenStream.read(),
+              token = begin;
+        boolean illegalKeyword = false;
+        tokenStream.mark(begin);
+        do {
+            if (token.getId() == TSCode.IDENT && isReserved(token.getValue())) {
+                String errMessage = CompilerErrors.formatErrorMessage(
+                    token, Level.ERROR, ErrType.ILLEGAL_EXPR,
+                    "Script functions and logic unavailable on the command line"
+                );
+                Logger.getLogger(Productions.class.getName()).log(java.util.logging.Level.SEVERE, errMessage, errMessage);
+                observer.notifyObserver(errMessage);
+                observer.setParseFailed();
+                illegalKeyword = true;
+            }
+            token = tokenStream.read();
+        }
+        while (!tokenStream.atEOS());
+        if (illegalKeyword)
+            return null;
+        
+        // Rewind to beginning and attempt to parse
+        tokenStream.rewind(begin);
+        tokenStream.unmark();
+        try {
+            return Productions.statement(tokenStream);
+        } catch (ParseException ex) {
+            Logger.getLogger(Productions.class.getName()).log(java.util.logging.Level.SEVERE, ex.getMessage(), ex);
+            observer.notifyObserver(ex.getMessage());
+            return null;
+        }
     }
 
     /**
      * Production rule for statement blocks. Only used with scripts.
      * @param tokenStream Token stream
+     * @param observer Parse status observer
      * @return Instruction generation tree
      */
-    public static CNode statementBlock (BufferedTokenStream tokenStream)
+    public static CNode statementBlock (BufferedTokenStream tokenStream, ParseObserver observer)
     {
         BiFunction<CNode, InstructionBuilder, Integer> injected = (CNode thisNode, InstructionBuilder builder) -> {
             for (int i = 0; i < CNode.numChildren (thisNode); ++i)
@@ -189,12 +199,15 @@ abstract public class Productions
                 statementNode = Productions.statement (tokenStream);
             } catch (ParseException ex) {
                 Logger.getLogger(Productions.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                observer.notifyObserver(ex.getMessage());
+                observer.setParseFailed();
                 try {
                     discardStatement (tokenStream);
                 } catch (ParseException ex1) {
                     Logger.getLogger(Productions.class.getName()).log(java.util.logging.Level.SEVERE, null, ex1);
+                    observer.notifyObserver(ex1.getMessage());
+                    return null;
                 }
-                StatusFlags.parsingFailed = true;
             }
             if (statementNode == null)
                 break;

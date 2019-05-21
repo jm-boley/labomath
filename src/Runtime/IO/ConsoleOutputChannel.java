@@ -1,5 +1,6 @@
 package Runtime.IO;
 
+import GUI.CmdLinePanel;
 import java.awt.Color;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,4 +49,8 @@ public class ConsoleOutputChannel
         m_output.append((String) output);
     }
     
+    public void resetFontColor()
+    {
+        m_output.setForeground(CmdLinePanel.STD_FONT_CLR);
+    }
 }
