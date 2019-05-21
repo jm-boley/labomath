@@ -58,7 +58,7 @@ public class Compiler
         
         // Build code generation tree
         CNode codeTree;
-        if (!isCommand) {
+        if (isCommand) {
             try {
                 codeTree = Productions.commandLine(m_tokenStream);
             } catch (ParseException ex) {
