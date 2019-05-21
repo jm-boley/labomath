@@ -1,7 +1,7 @@
 package GUI;
 
 import Runtime.IO.InputChannel;
-import Runtime.JIT.Compiler;
+import Runtime.VirtualMachine;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -35,7 +35,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
  */
 public class TextEditorForm extends javax.swing.JInternalFrame {
 
-    private final Compiler m_jit;
+    private final VirtualMachine m_jit;
     private final InputChannel m_editorIn;
     private String m_filePath;
     private boolean m_changed;
@@ -44,7 +44,7 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
      * Creates new form TextEditorForm
      * @param jitEnv
      */
-    public TextEditorForm(Compiler jitEnv) {
+    public TextEditorForm(VirtualMachine jitEnv) {
         super();
         initComponents();
         
@@ -53,7 +53,7 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
         
         // Initialize JIT environment
         m_jit = jitEnv;
-        m_editorIn = m_jit.initInputSource(tpTextEditor);
+        m_editorIn = m_jit.initLocalInputChannel(tpTextEditor);
     }
 
     /**
@@ -320,12 +320,8 @@ public class TextEditorForm extends javax.swing.JInternalFrame {
     
     private void runBttnActionPerformed(ActionEvent evt)
     {
-        try {
-            m_editorIn.inputReady();
-            m_jit.run();
-        } catch (IOException ex) {
-            Logger.getLogger(TextEditorForm.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        m_editorIn.inputReady();
+        m_jit.run();
     }
     
     private boolean queryAndSaveIf(ActionEvent evt)

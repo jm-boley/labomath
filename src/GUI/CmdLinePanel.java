@@ -6,7 +6,7 @@
 package GUI;
 
 import Runtime.IO.InputChannel;
-import Runtime.JIT.Compiler;
+import Runtime.VirtualMachine;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Label;
@@ -14,9 +14,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -38,19 +35,18 @@ class CmdLinePanel
     private JTextField tfConsoleIn;
     private Label lblPrompt;
     
-    private final Compiler m_jit;
+    private final VirtualMachine m_jit;
     private final InputChannel m_cmdlineIn;
 
-    public CmdLinePanel(final Compiler core)
+    public CmdLinePanel(final VirtualMachine core)
     {
         super();
         initComponents();
         
         // Initialize JIT environment
         this.m_jit = core;
-        m_cmdlineIn = m_jit.initInputSource(tfConsoleIn);
-        m_jit.initConsoleOut(txtConsoleOut);
-
+        m_cmdlineIn = m_jit.initLocalInputChannel(tfConsoleIn);
+        m_jit.initLocalOutputChannel(txtConsoleOut);
     }
     
     private void initComponents()
@@ -126,17 +122,9 @@ class CmdLinePanel
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
             String cmd = tfConsoleIn.getText();
             txtConsoleOut.append("> " + cmd + "\n");
-            try {
-                m_cmdlineIn.inputReady();
-                m_jit.run();
-            }
-            catch (IOException ex) {
-                Logger.getLogger(CmdLinePanel.class.getName())
-                        .log(Level.SEVERE, null, ex);
-            }
-            finally {
-                tfConsoleIn.setText("");
-            }
+            m_cmdlineIn.inputReady();
+            m_jit.run();
+            tfConsoleIn.setText("");
         }
     }
 

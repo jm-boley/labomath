@@ -1,27 +1,19 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package GUI;
 
 import java.awt.Container;
 import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import Runtime.JIT.Compiler;
+import Runtime.VirtualMachine;
 import java.awt.BorderLayout;
 
 /**
- *
- * @author boley
+ * Main LabOMath GUI application
+ * @author Joshua Boley
  */
 public class LabOMathApp
         extends JFrame
-        implements ActionListener
 {
     public static void main(String[] args)
     {
@@ -33,12 +25,12 @@ public class LabOMathApp
         });
     }
     
-    private final Compiler m_runtime;
+    private final VirtualMachine m_runtime;
     
     LabOMathApp()
     {
         super ("LabOMath v0.1");
-        m_runtime = new Compiler();
+        m_runtime = new VirtualMachine();
     }
 
     LabOMathApp createAndShowGUI()
@@ -54,14 +46,7 @@ public class LabOMathApp
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.pack();
         return this;
-    }
-    
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
-        
-    }
-    
+    }    
 }
 
 //public class AnimationApp
