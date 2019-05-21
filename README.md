@@ -1,0 +1,4 @@
+# Overview
+Command-line and script-driven Matlab-like GUI environment. The core runtime is built on a minimal virtual machine running a dedicated JIT compiler and software CPU for execution of compiled instructions. The VCPU is loosely modeled on the Intel x86_64 processor architecture. A JIT compiler converts commands and scripts to a VCPU machine code analogue which is then executed "in memory" on the VCPU. 
+
+This project is intended for personal experimentation. The ultimate goal is to build a comprehensive model illustrating how real systems compile and execute user code, from the compilation of source code all the way down to execution of machine code on the CPU, to the largest extent that time and practicality permit. Possible avenues for further exploration include branch prediction, multithreading and modeling of L1 through L3 caching in modern CPUs, and user code optimization algorithms such as dead code elimination, loop unrolling and code hoisting.
