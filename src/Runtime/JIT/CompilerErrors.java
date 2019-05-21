@@ -1,15 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Runtime.JIT;
 
+import Lexical.TSCode;
 import Lexical.Token;
 
 /**
- *
- * @author boley
+ * Parsing errors formatting helper class, contains common messages, error level
+ * and types easily build consistent and standards-formatted error messages.
+ * @author Joshua Boley
  */
 public abstract class CompilerErrors
 {
@@ -58,7 +55,8 @@ public abstract class CompilerErrors
         INVALID_NUMERIC("Numeric operand out of sequence"),
         MISSING_BIN_RHO("Missing right-hand operand for binary operator"),
         MISSING_UNARY_RHO("Missing right-hand operand for unary operator"),
-        UNEXPECTED_TOKEN("Unexpected/out-of-sequence arithmetic keyword/operator"),
+        UNEXPECTED_ARITH_TOKEN("Unexpected/out-of-sequence arithmetic keyword/operator"),
+        UNEXPECTED_KEYWORD("Unexpected symbol/keyword"),
         UNMATCHED_LPAREN("Unmatched left parenthesis"),
         UNMATCHED_RPAREN("Unmatched right parenthesis"),
         
@@ -85,15 +83,32 @@ public abstract class CompilerErrors
     
     public static String formatErrorMessage (Token token, Level level, ErrType errType, String message)
     {
+        return format(token, level, errType, message);
+    }
+    
+    public static String formatErrorMessage (Token token, Level level, ErrType errType, ErrMessage message)
+    {
+        return format(token, level, errType, message.toString());
+    }
+    
+    private static String format(Token token, Level level, ErrType errType, String message)
+    {
         StringBuilder errorStrBuilder = new StringBuilder();
         errorStrBuilder
-            .append(level).append(":Type=").append(errType)
-            .append(" [").append(token.getLineNo()).append(":").append(token.getColNo()).append("]: ")
-            .append(message).append(".");
-        if (!token.equals(Token.NONE)) {
+            .append(level).append(":Type=").append(errType);
+        if (token != null)
             errorStrBuilder
-                .append(" (").append(token.getValue()).append(")");
+                .append(" [").append(token.getLineNo()).append(":").append(token.getColNo()).append("]");
+        errorStrBuilder
+            .append(": ").append(message);
+        if (token != null && !token.equals(Token.NONE)) {
+            String tokenStr = token.getValue();
+            if (token.getId() == TSCode.STRING)
+                tokenStr = "\"" + tokenStr.replace("\n", "\\n") + "\"";
+            errorStrBuilder
+                .append(" (").append(tokenStr).append(")");
         }
+        errorStrBuilder.append(".");
         return errorStrBuilder.toString();
     }
 }

@@ -18,11 +18,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
-abstract class StatusFlags
-{
-    static boolean parsingFailed = false;
-}
-
 /**
  * Grammar rules (productions). Implements top-down, recursive descent language
  * parsing.
@@ -50,51 +45,61 @@ abstract public class Productions
     private static void consumeTrailingSemicolon(BufferedTokenStream tokenStream) throws ParseException
     {
         Token semicolToken = tokenStream.read();
-        if (semicolToken == null)
-            throw new ParseException("EOS", null);
-        else if (semicolToken.getId() != TSCode.SEMICOLON)
-            throw new ParseException("Unexpected symbol/keyword", semicolToken);
+        if (semicolToken == null) {
+            String errMessage = CompilerErrors.formatErrorMessage(
+                null, Level.ERROR, ErrType.COMP_U,
+                "Unexpected end-of-script while looking for statement terminator (;)"
+            );
+            throw new ParseException(errMessage, null);
+        }
+        else if (semicolToken.getId() != TSCode.SEMICOLON) {
+            String errMessage = CompilerErrors.formatErrorMessage(
+                semicolToken, Level.ERROR, ErrType.ILLEGAL_EXPR,
+                ErrMessage.UNEXPECTED_KEYWORD
+            );
+            throw new ParseException(errMessage, semicolToken);
+        }
     }
     
-    private static void consumeLParen (BufferedTokenStream tokenStream, ErrType errType) throws ParseException
+    private static void consumeLParen(BufferedTokenStream tokenStream, ErrType errType) throws ParseException
     {
         Token lparenToken = tokenStream.read();
         if (lparenToken.getId () != TSCode.LPAREN) {
             String errMessage = CompilerErrors.formatErrorMessage(
                 lparenToken, Level.ERROR, errType,
-                (errType == ErrType.ARITHMETIC) ? ErrMessage.UNMATCHED_LPAREN.toString() : ErrMessage.MISSING_LPAREN.toString()
+                (errType == ErrType.ARITHMETIC) ? ErrMessage.UNMATCHED_LPAREN : ErrMessage.MISSING_LPAREN
             );
             throw new ParseException(errMessage, lparenToken);
         }
     }
     
-    private static void consumeRParen (BufferedTokenStream tokenStream, ErrType errType) throws ParseException
+    private static void consumeRParen(BufferedTokenStream tokenStream, ErrType errType) throws ParseException
     {
         Token lparenToken = tokenStream.read();
         if (lparenToken.getId () != TSCode.RPAREN) {
             String errMessage = CompilerErrors.formatErrorMessage(
                 lparenToken, Level.ERROR, errType,
-                (errType == ErrType.ARITHMETIC) ? ErrMessage.UNMATCHED_RPAREN.toString() : ErrMessage.MISSING_RPAREN.toString()
+                (errType == ErrType.ARITHMETIC) ? ErrMessage.UNMATCHED_RPAREN : ErrMessage.MISSING_RPAREN
             );
             throw new ParseException(errMessage, lparenToken);
         }
     }
     
-    private static boolean consumeListSeparator (BufferedTokenStream tokenStream) throws ParseException
+    private static boolean consumeListSeparator(BufferedTokenStream tokenStream) throws ParseException
     {
         Token separator = tokenStream.read();
         if (separator.getId() != TSCode.COMMA) {
             tokenStream.unread(separator);
             return false;
         }
-        return false;
+        return true;
     }
     
-    private static void abortIfEOS (BufferedTokenStream tokenStream) throws ParseException
+    private static void abortIfEOS(BufferedTokenStream tokenStream) throws ParseException
     {
         if (tokenStream.atEOS()) {
             String errMessage = CompilerErrors.formatErrorMessage(
-                Token.NONE, Level.ERROR, ErrType.COMP_U,
+                null, Level.ERROR, ErrType.COMP_U,
                 "Unexpected end of file/line while processing instruction(s)."
             );
             throw new ParseException(errMessage, null);
@@ -116,7 +121,7 @@ abstract public class Productions
         return rval;
     }
     
-    private static void binaryOpTypeCheck (CNode lhs, CNode rhs, Token token, ErrType errType) throws ParseException
+    private static void binaryOpTypeCheck(CNode lhs, CNode rhs, Token token, ErrType errType) throws ParseException
     {
 	if (!lhs.getValType().equals(rhs.getValType())) {
             String errMessage = CompilerErrors.formatErrorMessage(
@@ -134,7 +139,7 @@ abstract public class Productions
      * @param observer Parse status observer
      * @return Code generation tree 
      */
-    public static CNode commandLine (BufferedTokenStream tokenStream, ParseObserver observer)
+    public static CNode commandLine(BufferedTokenStream tokenStream, ParseObserver observer)
     {
         if (tokenStream.atEOS())
             return null;
@@ -179,7 +184,7 @@ abstract public class Productions
      * @param observer Parse status observer
      * @return Instruction generation tree
      */
-    public static CNode statementBlock (BufferedTokenStream tokenStream, ParseObserver observer)
+    public static CNode statementBlock(BufferedTokenStream tokenStream, ParseObserver observer)
     {
         BiFunction<CNode, InstructionBuilder, Integer> injected = (CNode thisNode, InstructionBuilder builder) -> {
             for (int i = 0; i < CNode.numChildren (thisNode); ++i)
@@ -190,6 +195,7 @@ abstract public class Productions
         blockToken.setValue ("{}");
         CNode statementBlockRoot  = new CNode(blockToken, injected);
 
+        // Parse entire statement block before returning
         Token nextToken;
         while ((nextToken = tokenStream.read()) != null && nextToken.getId() != TSCode.RBRACKET) {
             tokenStream.unread(nextToken);  // Put token back into stream for next production
@@ -198,15 +204,21 @@ abstract public class Productions
             try {
                 statementNode = Productions.statement (tokenStream);
             } catch (ParseException ex) {
+                // Log and notify a parsing error has occurred
                 Logger.getLogger(Productions.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
                 observer.notifyObserver(ex.getMessage());
                 observer.setParseFailed();
-                try {
-                    discardStatement (tokenStream);
-                } catch (ParseException ex1) {
-                    Logger.getLogger(Productions.class.getName()).log(java.util.logging.Level.SEVERE, null, ex1);
-                    observer.notifyObserver(ex1.getMessage());
-                    return null;
+                
+                // Throw away remaining statement tokens if not at end-of-script (EOS)
+                if (!tokenStream.atEOS()) {
+                    try {
+                        discardStatement (tokenStream);
+                    } catch (ParseException ex1) {
+                        // Something is seriously wrong with the script, notify and abort parsing this statement block
+                        Logger.getLogger(Productions.class.getName()).log(java.util.logging.Level.SEVERE, null, ex1);
+                        observer.notifyObserver(ex1.getMessage());
+                        return null;
+                    }
                 }
             }
             if (statementNode == null)
@@ -218,7 +230,7 @@ abstract public class Productions
         return statementBlockRoot;
     }
     
-    public static CNode statement (BufferedTokenStream tokenStream) throws ParseException
+    public static CNode statement(BufferedTokenStream tokenStream) throws ParseException
     {
         // Skip as many comment tokens as required, until code found or end of token stream reached
         Token nextToken;
@@ -228,12 +240,12 @@ abstract public class Productions
         tokenStream.unread(nextToken);
         
         CNode statementNode = null;
-        // Attempt to parse print statement
+        // Attempt to parse statements beginning with known keywords
         if (nextToken.getId() == TSCode.IDENT) {
             switch(nextToken.getValue()) {
                 case "print":
                     if (tokenStream.atEOS())
-                        throw new RuntimeException("EOS reached after " + nextToken + " parsed");
+                        throw new ParseException("EOS reached after " + nextToken + " parsed", null);
                     statementNode = Productions.print(tokenStream);
                     break;
                 case "clear":
@@ -251,15 +263,14 @@ abstract public class Productions
             statementNode = Productions.rvalue(tokenStream);
 
         // If no statements could be parsed then flag a compilation error and throw away remainder of current statement
-        if (statementNode == null && !StatusFlags.parsingFailed) {
-            try {
-                // Syntax error, unrecognized keyword
-                discardStatement(tokenStream);
-            } catch (ParseException ex) {
-                
-            }
-            StatusFlags.parsingFailed = true;
-            return null;
+        if (statementNode == null) {
+            // Syntax error, unrecognized keyword
+            discardStatement(tokenStream);
+            String errMessage = CompilerErrors.formatErrorMessage(
+                nextToken, Level.ERROR, ErrType.ILLEGAL_EXPR,
+                ErrMessage.UNEXPECTED_KEYWORD
+            );
+            throw new ParseException(errMessage, nextToken);
         }
 
         return statementNode;
@@ -324,7 +335,7 @@ abstract public class Productions
         return assignNode;
     }
     
-    static CNode print (BufferedTokenStream tokenStream) throws ParseException
+    static CNode print(BufferedTokenStream tokenStream) throws ParseException
     {
         Token printToken = tokenStream.read();
         abortIfEOS(tokenStream);
@@ -338,32 +349,32 @@ abstract public class Productions
         boolean inList = false, separatorFound = false;
         Token argListToken;
         while ((argListToken = tokenStream.read()).getId() != TSCode.RPAREN && argListToken.getId() != TSCode.SEMICOLON) {
-            if (inList && !separatorFound) {
+            // Make sure that if this is not the first token processed in the
+            // print statement then a separator was previously seen
+            if (rvalNodes.size() > 0 && (!inList || !separatorFound)) {
                 String errMessage = CompilerErrors.formatErrorMessage(
                     argListToken, Level.ERROR, ErrType.FUNCTION_CALL,
-                    "Expected argument list separator"
+                    "Expected argument list separator. Found"
                 );
                 throw new ParseException(errMessage, argListToken);
             }
-            separatorFound = false;
             if (argListToken.getId() != TSCode.COMMA)
                 tokenStream.unread(argListToken);
             CNode rvalNode = Productions.rvalue (tokenStream);
             if (rvalNode == null) {
                 String errMessage = CompilerErrors.formatErrorMessage(
                     Token.NONE, Level.ERROR, ErrType.ILLEGAL_EXPR,
-                    ErrMessage.METHOD_ARGUMENT.toString()
+                    ErrMessage.METHOD_ARGUMENT
                 );
                 throw new ParseException(errMessage, null);
             }
             rvalNodes.add(rvalNode);
             abortIfEOS(tokenStream);
-            inList = separatorFound = consumeListSeparator (tokenStream);
+            separatorFound = consumeListSeparator(tokenStream);
+            if (!inList && separatorFound)
+                inList = true;
         }
         abortIfEOS(tokenStream);
-        
-//        consumeRParen(tokenStream, ErrType.FUNCTION_CALL);
-//        abortIfEOS(tokenStream);
         
         consumeTrailingSemicolon(tokenStream);
         
@@ -380,10 +391,12 @@ abstract public class Productions
             return builder.getActiveCodeSegmentId ();
         };
         CNode printNode = new CNode (printToken, injected);
-        for (CNode rvalNode : rvalNodes) {
-                rvalNode.setParent(printNode);
-                CNode.addChild(printNode, rvalNode);
-        }
+        rvalNodes.stream().map((rvalNode) -> {
+            rvalNode.setParent(printNode);
+            return rvalNode;
+        }).forEachOrdered((rvalNode) -> {
+            CNode.addChild(printNode, rvalNode);
+        });
 
         return printNode;
     }
@@ -532,7 +545,7 @@ abstract public class Productions
                         // Syntax error if integer or float is found, print error, discard token and continue
                         String errMessage = CompilerErrors.formatErrorMessage(
                             token, Level.ERROR, ErrType.ARITHMETIC,
-                            ErrMessage.INVALID_NUMERIC.toString()
+                            ErrMessage.INVALID_NUMERIC
                         );
                         throw new ParseException(errMessage, token);
                     }
@@ -558,7 +571,7 @@ abstract public class Productions
             if (rsubtree == null) {
                 String errMessage = CompilerErrors.formatErrorMessage(
                     token, Level.ERROR, ErrType.ARITHMETIC,
-                    ErrMessage.MISSING_BIN_RHO.toString()
+                    ErrMessage.MISSING_BIN_RHO
                 );
                 throw new ParseException(errMessage, token);
             }
@@ -668,7 +681,7 @@ abstract public class Productions
                         // Syntax error if integer or float is found, print error, discard token and continue
                         String errMessage = CompilerErrors.formatErrorMessage(
                             token, Level.ERROR, ErrType.ARITHMETIC,
-                            ErrMessage.INVALID_NUMERIC.toString()
+                            ErrMessage.INVALID_NUMERIC
                         );
                         throw new ParseException(errMessage, token);
                     }
@@ -694,7 +707,7 @@ abstract public class Productions
             if (rsubtree == null) {
                 String errMessage = CompilerErrors.formatErrorMessage(
                     token, Level.ERROR, ErrType.ARITHMETIC,
-                    ErrMessage.MISSING_BIN_RHO.toString()
+                    ErrMessage.MISSING_BIN_RHO
                 );
                 throw new ParseException(errMessage, token);
             }
@@ -748,7 +761,7 @@ abstract public class Productions
                         // Syntax error if integer or float is found, print error, discard token and continue
                         String errMessage = CompilerErrors.formatErrorMessage(
                             token, Level.ERROR, ErrType.ARITHMETIC,
-                            ErrMessage.INVALID_NUMERIC.toString()
+                            ErrMessage.INVALID_NUMERIC
                         );
                         throw new ParseException(errMessage, token);
                     }
@@ -775,7 +788,7 @@ abstract public class Productions
             if (rsubtree == null) {
                 String errMessage = CompilerErrors.formatErrorMessage(
                     token, Level.ERROR, ErrType.ARITHMETIC,
-                    ErrMessage.MISSING_BIN_RHO.toString()
+                    ErrMessage.MISSING_BIN_RHO
                 );
                 throw new ParseException(errMessage, token);
             }
@@ -809,7 +822,7 @@ abstract public class Productions
                 if (closeToken.getId() != TSCode.RPAREN) {
                     String errMessage = CompilerErrors.formatErrorMessage(
                         token, Level.ERROR, ErrType.ARITHMETIC,
-                        ErrMessage.UNMATCHED_RPAREN.toString()
+                        ErrMessage.UNMATCHED_RPAREN
                     );
                     throw new ParseException(errMessage, closeToken);
                 }
@@ -831,7 +844,7 @@ abstract public class Productions
                 if ((nextToken = tokenStream.read()).getId() == TSCode.PLUS || nextToken.getId() == TSCode.MINUS) {
                     String errMessage = CompilerErrors.formatErrorMessage(
                             nextToken, Level.ERROR, ErrType.ARITHMETIC,
-                            ErrMessage.UNEXPECTED_TOKEN.toString()
+                            ErrMessage.UNEXPECTED_ARITH_TOKEN
                     );
                     throw new ParseException(errMessage, nextToken);
                 }
@@ -844,7 +857,7 @@ abstract public class Productions
                 if (subtree == null) {
                     String errMessage = CompilerErrors.formatErrorMessage(
                         token, Level.ERROR, ErrType.ARITHMETIC,
-                        ErrMessage.MISSING_UNARY_RHO.toString()
+                        ErrMessage.MISSING_UNARY_RHO
                     );
                     throw new ParseException(errMessage, token);
                 }
@@ -861,7 +874,7 @@ abstract public class Productions
                 if ((nextToken = tokenStream.read()).getId() == TSCode.PLUS || nextToken.getId() == TSCode.MINUS) {
                     String errMessage = CompilerErrors.formatErrorMessage(
                             token, Level.ERROR, ErrType.ARITHMETIC,
-                            ErrMessage.UNEXPECTED_TOKEN.toString()
+                            ErrMessage.UNEXPECTED_ARITH_TOKEN
                     );
                     throw new ParseException(errMessage, nextToken);
                 }
@@ -875,7 +888,7 @@ abstract public class Productions
                 if (currentroot == null) {
                     String errMessage = CompilerErrors.formatErrorMessage(
                         token, Level.ERROR, ErrType.ARITHMETIC,
-                        ErrMessage.MISSING_UNARY_RHO.toString()
+                        ErrMessage.MISSING_UNARY_RHO
                     );
                     throw new ParseException(errMessage, token);
                 }
@@ -951,7 +964,7 @@ abstract public class Productions
             // Print error message and return null
             String errMessage = CompilerErrors.formatErrorMessage(
                 varToken, Level.ERROR, ErrType.SYMBOL_REF,
-                ErrMessage.UNDEFINED_SYMBOL.toString()
+                ErrMessage.UNDEFINED_SYMBOL
             );
             throw new ParseException(errMessage, varToken);
         }
